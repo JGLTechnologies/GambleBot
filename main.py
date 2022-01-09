@@ -3,9 +3,10 @@ import os
 import functools
 from disnake.ext import commands
 from typing import *
+import aiosqlite
 
 TOKEN = os.environ.get("GambleBot_TOKEN")
-cogs = ["cogs.games", "cogs.events"]
+cogs = ["cogs.games", "cogs.events", "cogs.commands"]
 bot = commands.AutoShardedInteractionBot(intents=disnake.Intents.all())
 
 
@@ -38,6 +39,43 @@ class HasRoleCallable:
 
 def has_role_callable(func: Awaitable) -> Any:
     return HasRoleCallable(func)
+
+
+async def get_balance(guild_id: int, member_id: int):
+    async with aiosqlite.connect("bot.db") as db:
+        await db.execute("""CREATE TABLE IF NOT EXISTS balances(
+            guild INTEGER,
+            member INTEGER,
+            balance INTEGER,
+            PRIMARY KEY (guild, member)
+        )""")
+        await db.commit()
+        async with db.execute("SELECT balance FROM balances WHERE guild=? and member=?",
+                              (guild_id, member_id)) as cursor:
+            bal = await cursor.fetchone()
+            if bal is not None:
+                return bal[0]
+            else:
+                return 0
+
+
+async def set_balance(guild_id: int, member_id: int, balance: int):
+    async with aiosqlite.connect("bot.db") as db:
+        await db.execute("""CREATE TABLE IF NOT EXISTS balances(
+            guild INTEGER,
+            member INTEGER,
+            balance INTEGER,
+            PRIMARY KEY (guild, member)
+        )""")
+        await db.commit()
+        try:
+            async with db.execute("INSERT INTO balances (guild,member,balance) VALUES (?,?,?)",
+                                  (guild_id, member_id, balance)):
+                pass
+        except:
+            async with db.execute("UPDATE balances SET balance=? WHERE guild=? and member=?",
+                                  (balance, guild_id, member_id)):
+                pass
 
 
 @bot.listen("on_ready")
