@@ -45,7 +45,7 @@ async def on_ready():
     print("Bot is ready")
 
 
-@bot.slash_command("ping")
+@bot.slash_command(name="ping")
 async def ping(inter: disnake.MessageCommandInteraction):
     await inter.response.send_message(f"Ping: {round(bot.latency, 2)}")
 
