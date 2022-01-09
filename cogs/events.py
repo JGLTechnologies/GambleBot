@@ -20,25 +20,25 @@ class Events(commands.Cog):
             else:
                 if isinstance(error, commands.errors.BotMissingPermissions) and not hasattr(inter, "handled_in_local"):
                     missing_perms = ", ".join(error.missing_perms)
-                    msg = "I am missing {missing_perms}."
+                    msg = f"I am missing {missing_perms}."
                     await inter.response.send_message(msg, ephemeral=True)
                 else:
                     if isinstance(error, commands.errors.RoleNotFound):
-                        msg = "Role not found: {error.argument}"
+                        msg = f"Role not found: {error.argument}"
                         await inter.response.send_message(msg, ephemeral=True)
                     else:
                         if isinstance(error, commands.errors.ChannelNotFound):
-                            msg = "Channel not found: {error.argument}"
+                            msg = f"Channel not found: {error.argument}"
                             await inter.response.send_message(msg, ephemeral=True)
                         else:
                             if isinstance(error, commands.errors.MemberNotFound) and not hasattr(inter,
                                                                                                  "handled_in_local"):
-                                msg = "Member not found: {error.argument}"
+                                msg = f"Member not found: {error.argument}"
                                 await inter.response.send_message(msg, ephemeral=True)
                             else:
                                 if isinstance(error, commands.errors.UserNotFound) and not hasattr(inter,
                                                                                                    "handled_in_local"):
-                                    msg = "User not found: {error.argument}"
+                                    msg = f"User not found: {error.argument}"
                                     await inter.response.send_message(msg, ephemeral=True)
                                 else:
                                     if isinstance(error, commands.errors.MissingPermissions) and not hasattr(inter,

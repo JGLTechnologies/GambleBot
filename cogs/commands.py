@@ -19,6 +19,10 @@ class Commands(commands.Cog):
         bal = await get_balance(inter.guild_id, member.id)
         await inter.response.send_message(f"{str(member)}'s balance is ${bal}.")
 
+    @commands.slash_command(name="ping")
+    async def ping(self, inter: disnake.MessageCommandInteraction):
+        await inter.response.send_message(f"Ping: {round(self.bot.latency, 2)}")
+
 
 def setup(bot):
     bot.add_cog(Commands(bot))
