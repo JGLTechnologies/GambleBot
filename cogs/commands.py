@@ -1,3 +1,5 @@
+import datetime
+
 import disnake
 from disnake.ext import commands
 from main import set_balance, get_balance
@@ -28,6 +30,22 @@ class Commands(commands.Cog):
     @commands.slash_command(name="ping")
     async def ping(self, inter: disnake.ApplicationCommandInteraction):
         await inter.response.send_message(f"Ping: {round(self.bot.latency, 2)}ms")
+
+    @commands.slash_command(name="accinfo")
+    async def account_info(self, inter: disnake.ApplicationCommandInteraction,
+                           member: disnake.Member = commands.Param(default=None)):
+        if member is None:
+            member = inter.author
+
+        embed = disnake.Embed(title=f"Info For {str(member)}", color=disnake.Color.blurple())
+        embed.add_field(name="Account Creation Date", value=member.created_at.strftime("%A, %B %d, %Y, %I:%M:%S %p"))
+        embed.add_field(name="Server Join Date", value=member.joined_at.strftime("%A, %B %d, %Y, %I:%M:%S %p"))
+        embed.add_field(name="Roles",
+                        value=", ".join([role.mention for role in member.roles if role.name != "@everyone"]))
+        embed.add_field(name="Display Name", value=member.display_name)
+        embed.add_field(name="ID", value=member.id)
+        embed.set_thumbnail(url=member.avatar.url or member.default_avatar.url)
+        await inter.response.send_message(embed=embed)
 
 
 def setup(bot):
