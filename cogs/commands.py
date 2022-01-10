@@ -8,20 +8,26 @@ class Commands(commands.Cog):
         self.bot = bot
 
     @commands.slash_command(name="setbalance")
+    @commands.guild_only()
+    @commands.bot_has_permissions(administrator=True)
     @commands.has_permissions(administrator=True)
-    async def set_balance(self, inter: disnake.MessageCommandInteraction, member: disnake.Member = commands.Param(),
-                          balance: int = commands.Param()):
+    async def set_balance_command(self, inter: disnake.ApplicationCommandInteraction,
+                                  member: disnake.Member = commands.Param(),
+                                  balance: int = commands.Param()):
         await set_balance(inter.guild_id, member.id, balance)
         await inter.response.send_message(f"Set {str(member)}'s balance to ${balance}.", ephemeral=True)
 
-    @commands.user_command(name="balance")
-    async def set_balance(self, inter: disnake.MessageCommandInteraction, member: disnake.Member):
-        bal = await get_balance(inter.guild_id, member.id)
-        await inter.response.send_message(f"{str(member)}'s balance is ${bal}.")
+    @commands.slash_command(name="balance")
+    @commands.guild_only()
+    @commands.bot_has_permissions(administrator=True)
+    async def balance_command(self, inter: disnake.ApplicationCommandInteraction,
+                              member: disnake.Member = commands.Param(default=None)):
+        bal = await get_balance(inter.guild_id, member.id if member is not None else inter.author.id)
+        await inter.response.send_message(f"{str(member or inter.author)}'s balance is ${bal}.")
 
     @commands.slash_command(name="ping")
-    async def ping(self, inter: disnake.MessageCommandInteraction):
-        await inter.response.send_message(f"Ping: {round(self.bot.latency, 2)}")
+    async def ping(self, inter: disnake.ApplicationCommandInteraction):
+        await inter.response.send_message(f"Ping: {round(self.bot.latency, 2)}ms")
 
 
 def setup(bot):
