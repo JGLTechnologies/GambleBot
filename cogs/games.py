@@ -42,25 +42,39 @@ class RPS(disnake.ui.Select):
                 description=f"It's a tie!\nYour current balance: ${bal}\nBet: ${self.bet}",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game")
         elif player_choice == "rock" and computer_choice == "scissors":
+            bal += self.bet
             embed = disnake.Embed(
-                description=f"You won!\nYour current balance: ${bal + self.bet}\nBet: ${self.bet}",
+                description=f"You won!\nYour current balance: ${bal}\nBet: ${self.bet}",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game")
-            await set_balance(inter.guild_id, inter.author.id, bal + self.bet)
+            await set_balance(inter.guild_id, inter.author.id, bal)
         elif player_choice == "paper" and computer_choice == "rock":
+            bal += self.bet
             embed = disnake.Embed(
-                description=f"You won!\nYour current balance: ${bal + self.bet}\nBet: ${self.bet}",
+                description=f"You won!\nYour current balance: ${bal}\nBet: ${self.bet}",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game")
-            await set_balance(inter.guild_id, inter.author.id, bal + self.bet)
+            await set_balance(inter.guild_id, inter.author.id, bal)
         elif player_choice == "scissors" and computer_choice == "paper":
+            bal += self.bet
             embed = disnake.Embed(
-                description=f"You won!\nYour current balance: ${bal + self.bet}\nBet: ${self.bet}",
+                description=f"You won!\nYour current balance: ${bal}\nBet: ${self.bet}",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game")
-            await set_balance(inter.guild_id, inter.author.id, bal + self.bet)
+            await set_balance(inter.guild_id, inter.author.id, bal)
         else:
+            bal -= self.bet
+            if self.view.rps.bet > bal:
+                self.bet = bal
+            if bal <= 0:
+                await inter.channel.send("You are out of money.")
+                try:
+                    msg = await inter.channel.fetch_message(rps_games[inter.guild_id][self.view.author][0])
+                    await msg.delete()
+                except Exception:
+                    pass
+                return
             embed = disnake.Embed(
-                description=f"You lost!\nYour current balance: ${bal - self.bet}\nBet: ${self.bet}",
+                description=f"You lost!\nYour current balance: ${bal}\nBet: ${self.bet}",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game")
-            await set_balance(inter.guild_id, inter.author.id, bal - self.bet)
+            await set_balance(inter.guild_id, inter.author.id, bal)
         await inter.response.edit_message(embed=embed)
 
 

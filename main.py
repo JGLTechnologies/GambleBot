@@ -1,9 +1,8 @@
-import sqlite3
-
 import disnake
 import os
 from disnake.ext import commands
 import aiosqlite
+import sqlite3
 
 TOKEN = os.environ.get("GambleBot_TOKEN")
 cogs = ["cogs.games", "cogs.events", "cogs.commands"]
