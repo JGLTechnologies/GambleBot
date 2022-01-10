@@ -36,7 +36,7 @@ class RPS(disnake.ui.Select):
         if self.view.rps.bet > bal:
             self.bet = bal
         if bal <= 0:
-            await inter.channel.send("You are out of money.")
+            await inter.channel.send("You are out of money.", delete_after=7)
             try:
                 msg = await inter.channel.fetch_message(rps_games[inter.guild_id][self.view.author][0])
                 await msg.delete()
@@ -72,7 +72,7 @@ class RPS(disnake.ui.Select):
             if self.view.rps.bet > bal:
                 self.bet = bal
             if bal <= 0:
-                await inter.channel.send("You are out of money.")
+                await inter.channel.send("You are out of money.", delete_after=7)
                 try:
                     msg = await inter.channel.fetch_message(rps_games[inter.guild_id][self.view.author][0])
                     await msg.delete()
