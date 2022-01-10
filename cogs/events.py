@@ -50,6 +50,10 @@ class Events(commands.Cog):
                 print(f"Error in {inter.application_command.name}")
                 raise error
 
+    @commands.Cog.listener("on_ready")
+    async def on_ready(self):
+        print("Bot is ready")
+
 
 def setup(bot):
     bot.add_cog(Events(bot))

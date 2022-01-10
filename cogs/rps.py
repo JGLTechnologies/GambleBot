@@ -35,6 +35,14 @@ class RPS(disnake.ui.Select):
         bal = await get_balance(inter.guild_id, inter.author.id)
         if self.view.rps.bet > bal:
             self.bet = bal
+        if bal <= 0:
+            await inter.channel.send("You are out of money.")
+            try:
+                msg = await inter.channel.fetch_message(rps_games[inter.guild_id][self.view.author][0])
+                await msg.delete()
+            except Exception:
+                pass
+            return
         player_choice = self.values[0].lower()
         computer_choice = random.choice(["rock", "paper", "scissors"])
         if player_choice == computer_choice:

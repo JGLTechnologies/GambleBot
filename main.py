@@ -52,11 +52,5 @@ async def set_balance(guild_id: int, member_id: int, balance: int):
         finally:
             await db.commit()
 
-
-@bot.listen("on_ready")
-async def on_ready():
-    print("Bot is ready")
-
-
 load_cogs()
 bot.run(TOKEN)
