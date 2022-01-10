@@ -5,7 +5,7 @@ import aiosqlite
 import sqlite3
 
 TOKEN = os.environ.get("GambleBot_TOKEN")
-cogs = ["cogs.games", "cogs.events", "cogs.commands"]
+cogs = ["cogs.rps", "cogs.events", "cogs.commands"]
 bot = commands.AutoShardedInteractionBot(intents=disnake.Intents.all())
 
 
