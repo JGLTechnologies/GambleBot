@@ -16,15 +16,27 @@ class CreditView(disnake.ui.View):
 class Credit(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.AutoShardedInteractionBot = bot
+        self.check_bills.start()
 
     @commands.Cog.listener("on_button_click")
     async def on_button_click(self, inter: disnake.MessageInteraction):
         async with aiosqlite.connect("bot.db") as db:
+            async with db.execute("""CREATE TABLE IF NOT EXISTS credit(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild INTEGER,
+                member INTEGER,
+                channel INTEGER,
+                message INTEGER,
+                amount FLOAT,
+                due_date INTEGER
+            )"""):
+                pass
+            await db.commit()
             async with db.execute(
-                    "SELECT id,amount,channel,guild,message,due_date FROM credit WHERE guild=? and message=? and member=?",
+                    "SELECT id,amount,guild,message,due_date FROM credit WHERE guild=? and message=? and member=?",
                     (inter.guild_id, inter.message.id, inter.author.id)) as cursor:
                 try:
-                    id, amount, channel, guild, message_id, due_date = await cursor.fetchone()
+                    id, amount, guild, message_id, due_date = await cursor.fetchone()
                 except Exception:
                     return
                 if due_date - (24 * 3600) > time.time():
@@ -40,7 +52,7 @@ class Credit(commands.Cog):
                         await message.delete()
                     except:
                         pass
-                    await channel.send(
+                    await inter.channel.send(
                         f"{inter.author.mention}, you have successfully paid your bill. You have been charged {round(amount * 1.5, 2)}")
                     bal = await get_balance(inter.guild_id, inter.author.id)
                     await set_balance(inter.guild_id, inter.author.id, bal - (amount * 1.5))
@@ -68,9 +80,21 @@ class Credit(commands.Cog):
             return
         bal = bal + 1 if bal == 0 else bal
         if amount > bal * 5:
-            await inter.response.send_message(f"You can only request 5x your current balance ({round(bal * 5, 2)}).", ephemeral=True)
+            await inter.response.send_message(f"You can only request 5x your current balance ({round(bal * 5, 2)}).",
+                                              ephemeral=True)
             return
         async with aiosqlite.connect("bot.db") as db:
+            async with db.execute("""CREATE TABLE IF NOT EXISTS credit(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild INTEGER,
+                member INTEGER,
+                channel INTEGER,
+                message INTEGER,
+                amount FLOAT,
+                due_date INTEGER
+            )"""):
+                pass
+            await db.commit()
             async with db.execute("SELECT * FROM credit WHERE guild=? and member=?",
                                   (inter.guild_id, inter.author.id)) as cursor:
                 if await cursor.fetchone() is not None:
@@ -85,6 +109,17 @@ class Credit(commands.Cog):
     @tasks.loop(seconds=10)
     async def check_bills(self):
         async with aiosqlite.connect("bot.db") as db:
+            async with db.execute("""CREATE TABLE IF NOT EXISTS credit(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild INTEGER,
+                member INTEGER,
+                channel INTEGER,
+                message INTEGER,
+                amount FLOAT,
+                due_date INTEGER
+            )"""):
+                pass
+            await db.commit()
             async with db.execute("SELECT id,guild,member,amount,due_date,message,channel FROM credit") as cursor:
                 async for entry in cursor:
                     id, guild, member, amount, due_date, message, channel = entry
@@ -106,3 +141,11 @@ class Credit(commands.Cog):
                             await channel.send(
                                 f"{member.mention}, You have failed to pay your bill on time. You have been charged ${round(amount * 2, 2)}")
                             await set_balance(guild.id, member.id, (await get_balance(guild.id, member.id)) - 1)
+
+    @check_bills.before_loop
+    async def before_bills_check(self):
+        await self.bot.wait_until_ready()
+
+
+def setup(bot):
+    bot.add_cog(Credit(bot))
