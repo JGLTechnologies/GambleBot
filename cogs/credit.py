@@ -72,13 +72,10 @@ class Credit(commands.Cog):
                 ephemeral=True)
             return
         bal = await get_balance(inter.guild_id, inter.author.id)
-        if amount > bal:
-            await inter.response.send_message("You do not have enough money.", ephemeral=True)
-            return
         if amount < 1:
             await inter.response.send_message("The amount must be at least 1.", ephemeral=True)
             return
-        bal = bal + 1 if bal == 0 else bal
+        bal = bal + 1 if bal <= 0 else bal
         if amount > bal * 5:
             await inter.response.send_message(f"You can only request 5x your current balance ({round(bal * 5, 2)}).",
                                               ephemeral=True)
@@ -103,8 +100,10 @@ class Credit(commands.Cog):
         embed = disnake.Embed(title="Credit Bill", color=disnake.Color.blurple())
         embed.add_field(inline=False, name="Amount Owed", value=f"${amount}")
         embed.add_field(inline=False, name="Due Date", value=get_discord_date(time.time() + 3600 * 48))
-        msg = await channel.send(embed=embed)
+        msg = await inter.guild.get_channel(channel).send(embed=embed, view=CreditView())
         await credit_add(inter.guild_id, inter.author.id, amount, msg.id, inter.channel_id)
+        await inter.response.send_message(
+            f"You have been paid ${round(amount, 2)}. You must pay your bill within 48 hours or you will be charged ${round(amount * 2, 2)}")
 
     @tasks.loop(seconds=10)
     async def check_bills(self):

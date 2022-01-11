@@ -30,6 +30,7 @@ class Commands(commands.Cog):
         await inter.response.send_message(f"Ping: {round(self.bot.latency, 2)}ms")
 
     @commands.slash_command(name="accinfo")
+    @commands.guild_only()
     async def account_info(self, inter: disnake.ApplicationCommandInteraction,
                            member: disnake.Member = commands.Param(default=None)):
         if member is None:
