@@ -66,6 +66,10 @@ class Credit(commands.Cog):
         if amount < 1:
             await inter.response.send_message("The amount must be at least 1.", ephemeral=True)
             return
+        bal = bal + 1 if bal == 0 else bal
+        if amount > bal * 5:
+            await inter.response.send_message(f"You can only request 5x your current balance ({round(bal * 5, 2)}).", ephemeral=True)
+            return
         async with aiosqlite.connect("bot.db") as db:
             async with db.execute("SELECT * FROM credit WHERE guild=? and member=?",
                                   (inter.guild_id, inter.author.id)) as cursor:
