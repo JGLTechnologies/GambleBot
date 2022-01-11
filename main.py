@@ -6,7 +6,7 @@ import sqlite3
 
 TOKEN = os.environ.get("GambleBot_TOKEN")
 cogs = ["cogs.rps", "cogs.events", "cogs.commands"]
-bot = commands.AutoShardedInteractionBot(intents=disnake.Intents.all(), sync_commands_debug=True)
+bot = commands.AutoShardedInteractionBot(intents=disnake.Intents.all())
 
 
 def load_cogs():

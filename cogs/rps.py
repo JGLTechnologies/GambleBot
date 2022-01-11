@@ -161,7 +161,7 @@ class Games(commands.Cog):
                     await inter.response.send_message("You already have a game in progress.", ephemeral=True)
                     return
                 except disnake.NotFound:
-                    pass
+                    del rps_games[inter.guild_id][inter.author.id]
         if bet > await get_balance(inter.guild_id, inter.author.id):
             await inter.response.send_message("You do not have enough money.", ephemeral=True)
             return
