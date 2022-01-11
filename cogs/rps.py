@@ -1,5 +1,5 @@
 import random
-from main import set_balance, get_balance
+from db import set_balance, get_balance
 import disnake
 from disnake.ext import commands
 from collections import defaultdict
@@ -48,24 +48,24 @@ class RPS(disnake.ui.Select):
         if player_choice == computer_choice:
             embed = disnake.Embed(
                 description=f"It's a tie!\nYour current balance: ${bal}\nBet: ${self.bet}",
-                title=f"{str(inter.author)}'s Rock Paper Scissors Game")
+                title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
         elif player_choice == "rock" and computer_choice == "scissors":
             bal += self.bet
             embed = disnake.Embed(
                 description=f"You won!\nYour current balance: ${bal}\nBet: ${self.bet}",
-                title=f"{str(inter.author)}'s Rock Paper Scissors Game")
+                title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             await set_balance(inter.guild_id, inter.author.id, bal)
         elif player_choice == "paper" and computer_choice == "rock":
             bal += self.bet
             embed = disnake.Embed(
                 description=f"You won!\nYour current balance: ${bal}\nBet: ${self.bet}",
-                title=f"{str(inter.author)}'s Rock Paper Scissors Game")
+                title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             await set_balance(inter.guild_id, inter.author.id, bal)
         elif player_choice == "scissors" and computer_choice == "paper":
             bal += self.bet
             embed = disnake.Embed(
                 description=f"You won!\nYour current balance: ${bal}\nBet: ${self.bet}",
-                title=f"{str(inter.author)}'s Rock Paper Scissors Game")
+                title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             await set_balance(inter.guild_id, inter.author.id, bal)
         else:
             bal -= self.bet
@@ -81,7 +81,7 @@ class RPS(disnake.ui.Select):
                 return
             embed = disnake.Embed(
                 description=f"You lost!\nYour current balance: ${bal}\nBet: ${self.bet}",
-                title=f"{str(inter.author)}'s Rock Paper Scissors Game")
+                title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             await set_balance(inter.guild_id, inter.author.id, bal)
         await inter.response.edit_message(embed=embed)
 
@@ -102,7 +102,7 @@ class INCR(disnake.ui.Button):
         self.view.decr.style = disnake.ButtonStyle.red
         embed = disnake.Embed(
             description=f"Your current balance: ${bal}\nBet: ${self.view.rps.bet}",
-            title=f"{str(inter.author)}'s Rock Paper Scissors Game")
+            title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
         await inter.response.edit_message(embed=embed)
 
 
@@ -121,7 +121,7 @@ class DECR(disnake.ui.Button):
         self.view.incr.style = disnake.ButtonStyle.blurple
         embed = disnake.Embed(
             description=f"Your current balance: ${await get_balance(inter.guild_id, inter.author.id)}\nBet: ${self.view.rps.bet}",
-            title=f"{str(inter.author)}'s Rock Paper Scissors Game")
+            title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
         await inter.response.edit_message(embed=embed)
 
 
@@ -144,7 +144,7 @@ class RPSView(disnake.ui.View):
 
 class Games(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: commands.AutoShardedInteractionBot = bot
 
     @commands.slash_command(name="rps")
     @commands.guild_only()
@@ -170,7 +170,7 @@ class Games(commands.Cog):
             return
         embed = disnake.Embed(
             description=f"Your current balance: ${await get_balance(inter.guild_id, inter.author.id)}\nBet: ${bet}",
-            title=f"{str(inter.author)}'s Rock Paper Scissors Game")
+            title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
         message = await inter.channel.send(embed=embed,
                                            view=RPSView(bet=bet, author=inter.author.id, guild=inter.guild_id,
                                                         channel=inter.channel_id))

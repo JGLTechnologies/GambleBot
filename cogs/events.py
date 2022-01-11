@@ -4,7 +4,7 @@ from disnake.ext import commands
 
 class Events(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: commands.AutoShardedInteractionBot = bot
 
     @commands.Cog.listener("on_slash_command_error")
     async def slash_error(self, inter: disnake.MessageCommandInteraction, error):

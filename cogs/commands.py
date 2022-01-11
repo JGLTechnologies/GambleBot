@@ -1,13 +1,11 @@
-import datetime
-
 import disnake
 from disnake.ext import commands
-from main import set_balance, get_balance
+from db import set_balance, get_balance, set_channel, get_channel
 
 
 class Commands(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: commands.AutoShardedInteractionBot = bot
 
     @commands.slash_command(name="setbalance")
     @commands.guild_only()
@@ -46,6 +44,31 @@ class Commands(commands.Cog):
         embed.add_field(name="ID", value=member.id)
         embed.set_thumbnail(url=member.avatar.url or member.default_avatar.url)
         await inter.response.send_message(embed=embed)
+
+    @commands.slash_command(name="setchannel")
+    @commands.guild_only()
+    @commands.bot_has_permissions(administrator=True)
+    async def set_channel(self, inter: disnake.ApplicationCommandInteraction,
+                          name: str = commands.Param(description="The channel you want to set"),
+                          channel: disnake.TextChannel = commands.Param()):
+        if name.lower() not in {"bills"}:
+            await inter.response.send_message(
+                "Invalid channel name. Visit https://jgltechnologies.com/GambleBot/config#channels to view all of the "
+                "valid channel names.",
+                ephemeral=True)
+            return
+        await set_channel(guild_id=inter.guild_id, channel_name=name.lower(), channel_id=channel.id)
+        await inter.response.send_message(f"Successfully set the {name} channel to {channel.mention}", ephemeral=True)
+
+    @commands.slash_command(name="config")
+    @commands.guild_only()
+    @commands.bot_has_permissions(administrator=True)
+    async def get_config(self, inter: disnake.ApplicationCommandInteraction):
+        bills = await get_channel(inter.guild_id, "bills")
+        bills = self.bot.get_channel(bills)
+        embed = disnake.Embed(title=f"Config For {inter.guild.name}", color=disnake.Color.blurple())
+        embed.add_field(inline=False, name="Channels", value=f"Bills: {bills.mention if bills is not None else 'Not Set'}")
+        await inter.response.send_message(embed=embed, ephemeral=True)
 
 
 def setup(bot):
