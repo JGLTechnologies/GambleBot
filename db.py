@@ -158,7 +158,7 @@ async def add_security(guild_id: int, member_id: int) -> None:
             pass
         await db.commit()
         async with db.execute(
-                "INSERT INTO security (guild,member,last_payed)",
+                "INSERT INTO security (guild,member,last_paid) VALUES (?,?,?)",
                 (guild_id, member_id, time.time())):
             pass
         await db.commit()

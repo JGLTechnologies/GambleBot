@@ -25,7 +25,7 @@ class Commands(commands.Cog):
     async def balance_command(self, inter: disnake.ApplicationCommandInteraction,
                               member: disnake.Member = commands.Param(default=None)):
         bal = await get_balance(inter.guild_id, member.id if member is not None else inter.author.id)
-        await inter.response.send_message(f"{str(member or inter.author)}'s balance is ${bal}.")
+        await inter.response.send_message(f"{str(member or inter.author)}'s balance is ${round(bal, 2)}.")
 
     @commands.slash_command(name="ping")
     async def ping(self, inter: disnake.ApplicationCommandInteraction):
@@ -219,6 +219,19 @@ class Commands(commands.Cog):
                           money=round(bal + (percent / 100) * amount - amount, 2))
         await inter.response.send_message(msg)
         await set_balance(inter.guild_id, inter.author.id, bal + (percent / 100) * amount - amount)
+
+    @commands.slash_command(name="pay")
+    @commands.guild_only()
+    @commands.cooldown(1, 300, commands.BucketType.member)
+    async def pay_command(self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member = commands.Param(),
+                          amount: int = commands.Param()):
+        bal = await get_balance(inter.guild_id, inter.author.id)
+        if amount > bal:
+            await inter.response.send_message("You do not have enough money.", ephemeral=True)
+            return
+        await inter.response.send_message(f"Successfully paid {str(member)} ${amount}.")
+        await set_balance(inter.guild_id, inter.author.id, bal - amount)
+        await set_balance(inter.guild_id, member.id, await get_balance(inter.guild_id, member.id) + amount)
 
     @commands.slash_command(name="invite")
     async def invite_command(self, inter: disnake.ApplicationCommandInteraction):
