@@ -145,3 +145,52 @@ async def credit_add(guild_id: int, member_id: int, amount: float, message_id: i
                 (guild_id, member_id, amount, due_date, message_id, channel_id)):
             pass
         await db.commit()
+
+
+async def add_security(guild_id: int, member_id: int) -> None:
+    async with aiosqlite.connect("bot.db") as db:
+        async with db.execute("""CREATE TABLE IF NOT EXISTS security(
+            member INTEGER,
+            guild INTEGER,
+            last_paid INTEGER,
+            PRIMARY KEY (member,guild)
+        )"""):
+            pass
+        await db.commit()
+        async with db.execute(
+                "INSERT INTO security (guild,member,last_payed)",
+                (guild_id, member_id, time.time())):
+            pass
+        await db.commit()
+
+
+async def has_security(guild_id: int, member_id: int) -> bool:
+    async with aiosqlite.connect("bot.db") as db:
+        async with db.execute("""CREATE TABLE IF NOT EXISTS security(
+            member INTEGER,
+            guild INTEGER,
+            last_paid INTEGER,
+            PRIMARY KEY (member,guild)
+        )"""):
+            pass
+        await db.commit()
+        async with db.execute("SELECT * FROM security WHERE member=? and guild=?", (member_id, guild_id)) as cursor:
+            if await cursor.fetchone() is None:
+                return False
+            else:
+                return True
+
+
+async def remove_security(guild_id: int, member_id: int) -> None:
+    async with aiosqlite.connect("bot.db") as db:
+        async with db.execute("""CREATE TABLE IF NOT EXISTS security(
+            member INTEGER,
+            guild INTEGER,
+            last_paid INTEGER,
+            PRIMARY KEY (member,guild)
+        )"""):
+            pass
+        await db.commit()
+        async with db.execute("DELETE FROM security WHERE member=? and guild=?", (member_id, guild_id)):
+            pass
+        await db.commit()

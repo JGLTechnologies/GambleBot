@@ -1,5 +1,4 @@
 import time
-
 import aiosqlite
 import disnake
 from disnake.ext import commands, tasks
@@ -33,19 +32,18 @@ class Credit(commands.Cog):
                 pass
             await db.commit()
             async with db.execute(
-                    "SELECT id,amount,guild,message,due_date FROM credit WHERE guild=? and message=? and member=?",
+                    "SELECT id,amount,guild,message,due_date,member FROM credit WHERE guild=? and message=? and member=?",
                     (inter.guild_id, inter.message.id, inter.author.id)) as cursor:
                 try:
-                    id, amount, guild, message_id, due_date = await cursor.fetchone()
+                    id, amount, guild, message_id, due_date, member_id = await cursor.fetchone()
                 except Exception:
                     return
+                if inter.author.id != member_id:
+                    return
                 if due_date - (24 * 3600) > time.time():
-                    embed = disnake.Embed(title="Credit Bill", color=disnake.Color.blurple())
-                    embed.add_field(inline=False, name="Amount Owed", value=f"${amount}")
-                    embed.add_field(inline=False, name="Due Date", value=get_discord_date(due_date))
-                    embed.add_field(inline=False, name="Message",
-                                    value=f"You have to wait until {get_discord_date(due_date) - (3600 * 24)} to pay your bill.")
-                    await inter.response.edit_message(embed=embed)
+                    await inter.response.send_message(
+                        f"You have to wait until {get_discord_date(due_date - (3600 * 24))} to pay your bill.",
+                        ephemeral=True)
                 else:
                     try:
                         message = await inter.channel.fetch_message(message_id)
@@ -56,7 +54,7 @@ class Credit(commands.Cog):
                         f"{inter.author.mention}, you have successfully paid your bill. You have been charged {round(amount * 1.5, 2)}")
                     bal = await get_balance(inter.guild_id, inter.author.id)
                     await set_balance(inter.guild_id, inter.author.id, bal - (amount * 1.5))
-                    async with db.execute("DELETE FROM credit WHERE message=?", (message_id,)):
+                    async with db.execute("DELETE FROM credit WHERE id=?", (id,)):
                         pass
                     await db.commit()
 
@@ -71,13 +69,13 @@ class Credit(commands.Cog):
                 "A bills channel has not been set for this server. Set one by doing /setchannel bills #channel",
                 ephemeral=True)
             return
-        bal = await get_balance(inter.guild_id, inter.author.id)
+        balance = await get_balance(inter.guild_id, inter.author.id)
         if amount < 1:
             await inter.response.send_message("The amount must be at least 1.", ephemeral=True)
             return
-        bal = bal + 1 if bal <= 0 else bal
+        bal = 100 if balance < 100 else balance
         if amount > bal * 5:
-            await inter.response.send_message(f"You can only request 5x your current balance ({round(bal * 5, 2)}).",
+            await inter.response.send_message(f"You can only request 5x your current balance (${round(bal * 5, 2)}).",
                                               ephemeral=True)
             return
         async with aiosqlite.connect("bot.db") as db:
@@ -98,12 +96,25 @@ class Credit(commands.Cog):
                     await inter.response.send_message("You already have an unpaid credit bill.", ephemeral=True)
                     return
         embed = disnake.Embed(title="Credit Bill", color=disnake.Color.blurple())
-        embed.add_field(inline=False, name="Amount Owed", value=f"${amount}")
+        embed.add_field(inline=False, name="Amount Owed", value=f"${round(amount * 1.5, 2)}")
         embed.add_field(inline=False, name="Due Date", value=get_discord_date(time.time() + 3600 * 48))
-        msg = await inter.guild.get_channel(channel).send(embed=embed, view=CreditView())
+        msg = await inter.guild.get_channel(channel).send(inter.author.mention, embed=embed, view=CreditView())
         await credit_add(inter.guild_id, inter.author.id, amount, msg.id, inter.channel_id)
+        await set_balance(inter.guild_id, inter.author.id, balance + amount)
         await inter.response.send_message(
-            f"You have been paid ${round(amount, 2)}. You must pay your bill within 48 hours or you will be charged ${round(amount * 2, 2)}")
+            f"You have been paid ${round(amount, 2)}. You must pay your bill within 48 hours or you will be charged ${round(amount * 2, 2)}", ephemeral=True)
+
+    @commands.slash_command(name="clearcreditbills")
+    @commands.guild_only()
+    @commands.has_permissions(administrator=True)
+    @commands.cooldown(1, 5, commands.BucketType.member)
+    async def clear_bills(self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member = commands.Param(default=None)):
+        member = member or inter.author
+        await inter.response.send_message(f"{str(member)}'s credit bills have been cleared.", ephemeral=True)
+        async with aiosqlite.connect("bot.db") as db:
+            async with db.execute("DELETE FROM credit WHERE member=?", (member.id,)):
+                pass
+            await db.commit()
 
     @tasks.loop(seconds=10)
     async def check_bills(self):
@@ -138,7 +149,7 @@ class Credit(commands.Cog):
                         member = guild.get_member(member)
                         if member is not None:
                             await channel.send(
-                                f"{member.mention}, You have failed to pay your bill on time. You have been charged ${round(amount * 2, 2)}")
+                                f"{member.mention}, you have failed to pay your bill on time. You have been charged ${round(amount * 2, 2)}")
                             await set_balance(guild.id, member.id, (await get_balance(guild.id, member.id)) - 1)
 
     @check_bills.before_loop
