@@ -54,6 +54,14 @@ class Events(commands.Cog):
     async def on_ready(self):
         print("Bot is ready")
 
+    @commands.Cog.listener("on_guild_add")
+    async def message_guild_owner(self, guild: disnake.Guild):
+        owner = guild.owner
+        try:
+            await owner.send("Thank you for adding me to your server! Do `/commands` for a list of commands.`")
+        except:
+            pass
+
 
 def setup(bot):
     bot.add_cog(Events(bot))

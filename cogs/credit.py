@@ -52,7 +52,7 @@ class Credit(commands.Cog):
                 except:
                     pass
                 await inter.channel.send(
-                    f"{inter.author.mention}, you have successfully paid your bill. You have been charged {round(amount * 1.5, 2)}")
+                    f"{inter.author.mention}, you have successfully paid your bill. You have been charged {amount * 1.5}")
                 bal = await get_balance(inter.guild_id, inter.author.id)
                 await set_balance(inter.guild_id, inter.author.id, bal - (amount * 1.5))
                 async with db.execute("DELETE FROM credit WHERE id=?", (id,)):
@@ -78,7 +78,7 @@ class Credit(commands.Cog):
             return
         bal = 100 if balance < 100 else balance
         if amount > bal * 5:
-            await inter.response.send_message(f"You can only request 5x your current balance (${round(bal * 5, 2)}).",
+            await inter.response.send_message(f"You can only request 5x your current balance (${bal * 5}).",
                                               ephemeral=True)
             return
         async with aiosqlite.connect("bot.db") as db:
@@ -100,13 +100,13 @@ class Credit(commands.Cog):
                     return
         await self.moving_window.hit(self.item, [str(inter.author.id), str(inter.guild_id)])
         embed = disnake.Embed(title="Credit Bill", color=disnake.Color.blurple())
-        embed.add_field(inline=False, name="Amount Owed", value=f"${round(amount * 1.5, 2)}")
+        embed.add_field(inline=False, name="Amount Owed", value=f"${amount * 1.5, 2}")
         embed.add_field(inline=False, name="Due Date", value=get_discord_date(time.time() + 3600 * 48))
         msg = await inter.guild.get_channel(channel).send(inter.author.mention, embed=embed, view=CreditView())
         await credit_add(inter.guild_id, inter.author.id, amount, msg.id, inter.channel_id)
         await set_balance(inter.guild_id, inter.author.id, balance + amount)
         await inter.response.send_message(
-            f"You have been paid ${round(amount, 2)}. You must pay your bill within 48 hours or you will be charged ${round(amount * 2, 2)}",
+            f"You have been paid ${amount}. You must pay your bill within 48 hours or you will be charged ${amount * 2}",
             ephemeral=True)
 
     @commands.slash_command(name="clearcreditbills")
@@ -155,7 +155,7 @@ class Credit(commands.Cog):
                         member = guild.get_member(member)
                         if member is not None:
                             await channel.send(
-                                f"{member.mention}, you have failed to pay your bill on time. You have been charged ${round(amount * 2, 2)}")
+                                f"{member.mention}, you have failed to pay your bill on time. You have been charged ${amount * 2}")
                             await set_balance(guild.id, member.id, (await get_balance(guild.id, member.id)) - 1)
 
     @check_bills.before_loop

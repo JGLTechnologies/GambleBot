@@ -3,11 +3,17 @@ import disnake
 from disnake.ext import commands
 from db import set_balance, get_balance, set_channel, get_channel, has_security
 from main import get_discord_date
+from limits.aio.strategies import MovingWindowRateLimiter
+from limits.aio.storage import MemoryStorage
+from limits import RateLimitItemPerHour
 
 
 class Commands(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.AutoShardedInteractionBot = bot
+        self.storage: MemoryStorage = MemoryStorage()
+        self.moving_window: MovingWindowRateLimiter = MovingWindowRateLimiter(self.storage)
+        self.item: RateLimitItemPerHour = RateLimitItemPerHour(1, 1)
 
     @commands.slash_command(name="setbalance")
     @commands.guild_only()
@@ -25,7 +31,7 @@ class Commands(commands.Cog):
     async def balance_command(self, inter: disnake.ApplicationCommandInteraction,
                               member: disnake.Member = commands.Param(default=None)):
         bal = await get_balance(inter.guild_id, member.id if member is not None else inter.author.id)
-        await inter.response.send_message(f"{str(member or inter.author)}'s balance is ${round(bal, 2)}.")
+        await inter.response.send_message(f"{str(member or inter.author)}'s balance is ${bal}.")
 
     @commands.slash_command(name="ping")
     async def ping(self, inter: disnake.ApplicationCommandInteraction):
@@ -75,8 +81,11 @@ class Commands(commands.Cog):
 
     @commands.slash_command(name="rob")
     @commands.guild_only()
-    @commands.cooldown(1, 1200, commands.BucketType.member)
+    @commands.cooldown(1, 900, commands.BucketType.member)
     async def rob(self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member = commands.Param()):
+        if not await self.moving_window.test(self.item, [str(inter.guild_id), str(member.id)]):
+            await inter.response.send_message("That member was already robbed recently.", ephemeral=True)
+            return
         bal = await get_balance(inter.guild_id, member.id)
         if bal < 1000:
             await inter.response.send_message("That member is too poor to be robbed.", ephemeral=True)
@@ -84,12 +93,13 @@ class Commands(commands.Cog):
         if await has_security(inter.guild_id, member.id):
             chances = ["s", "f", "f", "f", "f", "f", "f", "f", "f", "f"]
         else:
-            chances = ["s", "s", "s", "s", "f", "f", "f", "f", "f", "f"]
+            chances = ["s", "s", "s", "s", "s", "f", "f", "f", "f", "f"]
         success = random.choice(chances) == "s"
         if success:
+            await self.moving_window.hit(self.item, [str(inter.guild_id), str(member.id)])
             percent = random.randrange(1, 50)
             amount = bal * (percent / 100)
-            msg = f"You stole ${round(amount, 2)} from {str(member)}."
+            msg = f"You stole ${amount} from {str(member)}."
             await set_balance(inter.guild_id, inter.author.id,
                               (await get_balance(inter.guild_id, inter.author.id) + amount))
             await set_balance(inter.guild_id, member.id,
@@ -118,7 +128,7 @@ class Commands(commands.Cog):
             job = random.choice(job_list)
             pay = random.choice(job["pay"])
             desc = job["desc"]
-        msg = desc.format(pay=pay, money=round(bal + pay, 2))
+        msg = desc.format(pay=pay, money=bal + pay)
         await inter.response.send_message(msg)
         await set_balance(inter.guild_id, inter.author.id, bal + pay)
 
@@ -152,7 +162,11 @@ class Commands(commands.Cog):
                     {"name": "Pay", "usage": "`/pay member:[member] amount:[integer]`",
                      "desc": "Pay another member.", "admin": False}
             , {"name": "Invite", "usage": "`/invite`",
-               "desc": "Get a link to invite GamebleBot to your server.", "admin": False}]
+               "desc": "Get a link to invite GamebleBot to your server.", "admin": False},
+                    {"name": "Unsubscribe", "usage": "`/unsubscribe service:[text]`",
+                     "desc": "Unsubscribe from a payment plan.", "admin": False},
+                    {"name": "Shop", "usage": "`/shop`",
+                     "desc": "View all of the items available for purchase on the server.", "admin": False}]
         if not (inter.author.guild_permissions.administrator and inter.author.top_role.permissions.administrator):
             commands = [command for command in commands if not command["admin"]]
         msg = ""
@@ -189,7 +203,7 @@ class Commands(commands.Cog):
             beg = random.choice(beg_list)
             pay = random.choice(beg["pay"])
             desc = beg["desc"]
-        msg = desc.format(pay=pay, money=round(bal + pay, 2))
+        msg = desc.format(pay=pay, money=bal + pay)
         await inter.response.send_message(msg)
         await set_balance(inter.guild_id, inter.author.id, bal + pay)
 
@@ -212,7 +226,9 @@ class Commands(commands.Cog):
                  "percent": [10, 20, 30, 40, 50]},
                 {
                     "desc": "There was a slight decrease in the market, and you lost ${pay}! You now have ${money}.",
-                    "percent": [90, 85, 75, 92, 93, 87, 65, 70, 76]},
+                    "percent": [90, 85, 75, 92, 93, 87, 65, 70, 76]}, {
+                    "desc": "There was a slight decrease in the market, and you lost ${pay}! You now have ${money}.",
+                    "percent": [91, 83, 75, 92, 93, 70, 90, 80, 75]},
                 {"desc": "There was a spike in the stock you invested in, and you made ${pay}! You now have ${money}.",
                  "percent": [150, 165, 175, 180, 190, 200, 220, 160, 170, 155, 300]}]
             stock = random.choice(stock_list)

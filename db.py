@@ -18,7 +18,7 @@ async def get_balance(guild_id: int, member_id: int) -> int:
                               (guild_id, member_id)) as cursor:
             bal = await cursor.fetchone()
             if bal is not None:
-                return bal[0]
+                return round(bal[0], 2)
             else:
                 return 0
 
