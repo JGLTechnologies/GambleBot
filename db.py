@@ -1,9 +1,7 @@
-import datetime
 import time
 import typing
 import aiosqlite
 import sqlite3
-import pytz
 
 
 async def get_balance(guild_id: int, member_id: int) -> int:
@@ -26,6 +24,7 @@ async def get_balance(guild_id: int, member_id: int) -> int:
 
 
 async def set_balance(guild_id: int, member_id: int, balance: int) -> None:
+    balance = round(balance, 2)
     async with aiosqlite.connect("bot.db") as db:
         async with db.execute("""CREATE TABLE IF NOT EXISTS balances(
             guild INTEGER,
