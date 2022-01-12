@@ -140,7 +140,10 @@ class RPSView(disnake.ui.View):
         self.add_item(self.rps)
 
     async def on_timeout(self) -> None:
-        del rps_games[self.guild][self.author]
+        try:
+            del rps_games[self.guild][self.author]
+        except KeyError:
+            return
 
 
 class Games(commands.Cog):
