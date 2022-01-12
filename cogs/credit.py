@@ -62,7 +62,7 @@ class Credit(commands.Cog):
     @commands.guild_only()
     async def credit_apply(self, inter: disnake.ApplicationCommandInteraction,
                            amount: int = commands.Param(description="The amount of credit you want")):
-        if not self.moving_window.test(self.item, (str(inter.author.id), str(inter.guild_id))):
+        if not await self.moving_window.test(self.item, (str(inter.author.id), str(inter.guild_id))):
             await inter.response.send_message("You can only use this command once per day.", ephemeral=True)
             return
         channel = await get_channel(inter.guild_id, "bills")
