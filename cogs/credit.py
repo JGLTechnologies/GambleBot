@@ -19,7 +19,8 @@ class Credit(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.AutoShardedInteractionBot = bot
         self.check_bills.start()
-        self.moving_window: MovingWindowRateLimiter = MovingWindowRateLimiter(MemoryStorage())
+        self.storage: MemoryStorage = MemoryStorage()
+        self.moving_window: MovingWindowRateLimiter = MovingWindowRateLimiter(self.storage)
         self.item: RateLimitItemPerDay = RateLimitItemPerDay(1, 1)
 
     @commands.Cog.listener("on_button_click")
@@ -62,7 +63,7 @@ class Credit(commands.Cog):
     @commands.guild_only()
     async def credit_apply(self, inter: disnake.ApplicationCommandInteraction,
                            amount: int = commands.Param(description="The amount of credit you want")):
-        if not await self.moving_window.test(self.item, (str(inter.author.id), str(inter.guild_id))):
+        if not await self.moving_window.test(self.item, [str(inter.author.id), str(inter.guild_id)]):
             await inter.response.send_message("You can only use this command once per day.", ephemeral=True)
             return
         channel = await get_channel(inter.guild_id, "bills")
@@ -97,7 +98,7 @@ class Credit(commands.Cog):
                 if await cursor.fetchone() is not None:
                     await inter.response.send_message("You already have an unpaid credit bill.", ephemeral=True)
                     return
-        await self.moving_window.hit(self.item, (str(inter.author.id), str(inter.guild_id)))
+        await self.moving_window.hit(self.item, [str(inter.author.id), str(inter.guild_id)])
         embed = disnake.Embed(title="Credit Bill", color=disnake.Color.blurple())
         embed.add_field(inline=False, name="Amount Owed", value=f"${round(amount * 1.5, 2)}")
         embed.add_field(inline=False, name="Due Date", value=get_discord_date(time.time() + 3600 * 48))
