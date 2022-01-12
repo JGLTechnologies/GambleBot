@@ -56,8 +56,7 @@ class Commands(commands.Cog):
                           channel: disnake.TextChannel = commands.Param()):
         if name.lower() not in {"bills"}:
             await inter.response.send_message(
-                "Invalid channel name. Visit https://jgltechnologies.com/GambleBot/config#channels to view all of the "
-                "valid channel names.",
+                "Invalid channel name. Do /config to se valid channel names.",
                 ephemeral=True)
             return
         await set_channel(guild_id=inter.guild_id, channel_name=name.lower(), channel_id=channel.id)
@@ -149,7 +148,11 @@ class Commands(commands.Cog):
                     {"name": "Beg", "usage": "`/beg`",
                      "desc": "Beg for money!", "admin": False},
                     {"name": "Invest", "usage": "`/invest amount:[integer]`",
-                     "desc": "Invest in the stock market to go big or make nothing.", "admin": False}]
+                     "desc": "Invest in the stock market to go big or make nothing.", "admin": False},
+                    {"name": "Pay", "usage": "`/pay member:[member] amount:[integer]`",
+                     "desc": "Pay another member.", "admin": False}
+            , {"name": "Invite", "usage": "`/invite`",
+               "desc": "Get a link to invite GamebleBot to your server.", "admin": False}]
         if not (inter.author.guild_permissions.administrator and inter.author.top_role.permissions.administrator):
             commands = [command for command in commands if not command["admin"]]
         msg = ""
