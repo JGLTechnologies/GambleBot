@@ -78,6 +78,7 @@ class RPS(disnake.ui.Select):
                     await msg.delete()
                 except Exception:
                     pass
+                await set_balance(inter.guild_id, inter.author.id, bal)
                 return
             embed = disnake.Embed(
                 description=f"You lost!\nYour current balance: ${bal}\nBet: ${self.bet}",
