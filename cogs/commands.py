@@ -56,7 +56,7 @@ class Commands(commands.Cog):
                           channel: disnake.TextChannel = commands.Param()):
         if name.lower() not in {"bills"}:
             await inter.response.send_message(
-                "Invalid channel name. Do /config to se valid channel names.",
+                "Invalid channel name. Do `/config` to se valid channel names.",
                 ephemeral=True)
             return
         await set_channel(guild_id=inter.guild_id, channel_name=name.lower(), channel_id=channel.id)
