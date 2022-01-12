@@ -105,13 +105,15 @@ class Credit(commands.Cog):
         await credit_add(inter.guild_id, inter.author.id, amount, msg.id, inter.channel_id)
         await set_balance(inter.guild_id, inter.author.id, balance + amount)
         await inter.response.send_message(
-            f"You have been paid ${round(amount, 2)}. You must pay your bill within 48 hours or you will be charged ${round(amount * 2, 2)}", ephemeral=True)
+            f"You have been paid ${round(amount, 2)}. You must pay your bill within 48 hours or you will be charged ${round(amount * 2, 2)}",
+            ephemeral=True)
 
     @commands.slash_command(name="clearcreditbills")
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def clear_bills(self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member = commands.Param(default=None)):
+    async def clear_bills(self, inter: disnake.ApplicationCommandInteraction,
+                          member: disnake.Member = commands.Param(default=None)):
         member = member or inter.author
         await inter.response.send_message(f"{str(member)}'s credit bills have been cleared.", ephemeral=True)
         async with aiosqlite.connect("bot.db") as db:
