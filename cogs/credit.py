@@ -45,23 +45,18 @@ class Credit(commands.Cog):
                     return
                 if inter.author.id != member_id:
                     return
-                if due_date - (24 * 3600) > time.time():
-                    await inter.response.send_message(
-                        f"You have to wait until {get_discord_date(due_date - (3600 * 24))} to pay your bill.",
-                        ephemeral=True)
-                else:
-                    try:
-                        message = await inter.channel.fetch_message(message_id)
-                        await message.delete()
-                    except:
-                        pass
-                    await inter.channel.send(
-                        f"{inter.author.mention}, you have successfully paid your bill. You have been charged {round(amount * 1.5, 2)}")
-                    bal = await get_balance(inter.guild_id, inter.author.id)
-                    await set_balance(inter.guild_id, inter.author.id, bal - (amount * 1.5))
-                    async with db.execute("DELETE FROM credit WHERE id=?", (id,)):
-                        pass
-                    await db.commit()
+                try:
+                    message = await inter.channel.fetch_message(message_id)
+                    await message.delete()
+                except:
+                    pass
+                await inter.channel.send(
+                    f"{inter.author.mention}, you have successfully paid your bill. You have been charged {round(amount * 1.5, 2)}")
+                bal = await get_balance(inter.guild_id, inter.author.id)
+                await set_balance(inter.guild_id, inter.author.id, bal - (amount * 1.5))
+                async with db.execute("DELETE FROM credit WHERE id=?", (id,)):
+                    pass
+                await db.commit()
 
     @commands.slash_command(name="credit")
     @commands.guild_only()
