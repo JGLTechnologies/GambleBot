@@ -4,6 +4,9 @@ import disnake
 from disnake.ext import commands, tasks
 from db import get_balance, set_balance, credit_add, get_channel
 from main import get_discord_date
+from limits.aio.storage import MemoryStorage
+from limits.aio.strategies import MovingWindowRateLimiter
+from limits import RateLimitItemPerDay
 
 
 class CreditView(disnake.ui.View):
@@ -16,6 +19,8 @@ class Credit(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.AutoShardedInteractionBot = bot
         self.check_bills.start()
+        self.moving_window: MovingWindowRateLimiter = MovingWindowRateLimiter(MemoryStorage())
+        self.item: RateLimitItemPerDay = RateLimitItemPerDay(1, 1)
 
     @commands.Cog.listener("on_button_click")
     async def on_button_click(self, inter: disnake.MessageInteraction):
@@ -59,10 +64,12 @@ class Credit(commands.Cog):
                     await db.commit()
 
     @commands.slash_command(name="credit")
-    @commands.cooldown(1, 5, commands.BucketType.member)
     @commands.guild_only()
     async def credit_apply(self, inter: disnake.ApplicationCommandInteraction,
                            amount: int = commands.Param(description="The amount of credit you want")):
+        if not self.moving_window.test(self.item, (str(inter.author.id), str(inter.guild_id))):
+            await inter.response.send_message("You can only use this command once per day.", ephemeral=True)
+            return
         channel = await get_channel(inter.guild_id, "bills")
         if channel is None:
             await inter.response.send_message(
@@ -95,6 +102,7 @@ class Credit(commands.Cog):
                 if await cursor.fetchone() is not None:
                     await inter.response.send_message("You already have an unpaid credit bill.", ephemeral=True)
                     return
+        await self.moving_window.hit(self.item, (str(inter.author.id), str(inter.guild_id)))
         embed = disnake.Embed(title="Credit Bill", color=disnake.Color.blurple())
         embed.add_field(inline=False, name="Amount Owed", value=f"${round(amount * 1.5, 2)}")
         embed.add_field(inline=False, name="Due Date", value=get_discord_date(time.time() + 3600 * 48))
