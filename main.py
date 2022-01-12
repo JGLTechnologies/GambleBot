@@ -2,7 +2,10 @@ import disnake
 import os
 from disnake.ext import commands
 import time
+import logging
 
+logging.basicConfig(filename='jglbot.log', encoding='utf-8', level=logging.ERROR,
+                    format="[%(asctime)s] %(levelname)s: %(message)s", datefmt="%m-%d-%Y %I:%M:%S %p")
 TOKEN = os.environ.get("GambleBot_TOKEN")
 cogs = ["cogs.rps", "cogs.events", "cogs.commands", "cogs.credit", "cogs.shop"]
 bot = commands.AutoShardedInteractionBot(intents=disnake.Intents.all(), sync_commands_debug=True)
