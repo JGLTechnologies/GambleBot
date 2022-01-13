@@ -17,7 +17,7 @@ def load_cogs():
 
 
 def get_discord_date(ts: int = None) -> str:
-    return f"<t:{int(ts or time.time())}> (<t:{int(ts or time.time())}:R>)"
+    return f"<t:{int(ts or time.time())}:D>, <t:{int(ts or time.time())}:T> (<t:{int(ts or time.time())}:R>)"
 
 
 load_cogs()

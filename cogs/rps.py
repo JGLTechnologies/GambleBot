@@ -33,8 +33,7 @@ class RPS(disnake.ui.Select):
         if inter.author.id != self.view.author:
             return
         bal = await get_balance(inter.guild_id, inter.author.id)
-        if self.view.rps.bet > bal:
-            self.bet = bal
+        print(bal)
         if bal <= 0:
             await inter.channel.send("You are out of money.", delete_after=7)
             try:
@@ -43,6 +42,8 @@ class RPS(disnake.ui.Select):
             except Exception:
                 pass
             return
+        if self.view.rps.bet > bal:
+            self.bet = bal
         player_choice = self.values[0].lower()
         computer_choice = random.choice(["rock", "paper", "scissors"])
         if player_choice == computer_choice:
@@ -92,6 +93,8 @@ class INCR(disnake.ui.Button):
         if inter.author.id != self.view.author:
             return
         bal = await get_balance(inter.guild_id, inter.author.id)
+        if self.view.rps.bet > bal:
+            self.view.bet = bal
         if self.view.rps.bet + 1000 <= bal:
             self.view.rps.bet += 1000
         elif self.view.rps.bet + 100 <= bal:

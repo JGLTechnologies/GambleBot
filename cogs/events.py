@@ -1,3 +1,5 @@
+import time
+from main import get_discord_date
 import disnake
 from disnake.ext import commands
 
@@ -12,7 +14,8 @@ class Events(commands.Cog):
             error = error.original
         if isinstance(error, commands.errors.CommandOnCooldown):
             time_remaining = round(error.retry_after, 2)
-            await inter.response.send_message(f"You need to wait {time_remaining} more seconds to use that again.",
+            time_remaining = time.time() + time_remaining
+            await inter.response.send_message(f"You need to wait until {get_discord_date(time_remaining)} to use that command again.",
                                               ephemeral=True)
         elif isinstance(error, commands.errors.MissingRequiredArgument):
             pass
@@ -54,11 +57,11 @@ class Events(commands.Cog):
     async def on_ready(self):
         print("Bot is ready")
 
-    @commands.Cog.listener("on_guild_add")
+    @commands.Cog.listener("on_guild_join")
     async def message_guild_owner(self, guild: disnake.Guild):
         owner = guild.owner
         try:
-            await owner.send("Thank you for adding me to your server! Do `/commands` for a list of commands.`")
+            await owner.send("Thank you for adding me to your server! Do `/commands` for a list of commands.")
         except:
             pass
 
