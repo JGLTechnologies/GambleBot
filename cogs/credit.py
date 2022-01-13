@@ -54,6 +54,9 @@ class Credit(commands.Cog):
                 await inter.channel.send(
                     f"{inter.author.mention}, you have successfully paid your bill. You have been charged ${amount * 1.5}")
                 bal = await get_balance(inter.guild_id, inter.author.id)
+                if bal - amount * 1.5 <= 0:
+                    await inter.response.send_message("You do not have enough money.", ephemeral=True)
+                    return
                 await set_balance(inter.guild_id, inter.author.id, bal - (amount * 1.5))
                 async with db.execute("DELETE FROM credit WHERE id=?", (id,)):
                     pass
