@@ -184,8 +184,9 @@ class Commands(commands.Cog):
                      "desc": "Unsubscribe from a payment plan.", "admin": False},
                     {"name": "Shop", "usage": "`/shop`",
                      "desc": "View all of the items available for purchase on the server.", "admin": False}]
-        if not (inter.author.guild_permissions.administrator and inter.author.top_role.permissions.administrator):
-            commands = [command for command in commands if not command["admin"]]
+        if inter.guild is not None:
+            if not (inter.author.guild_permissions.administrator and inter.author.top_role.permissions.administrator):
+                commands = [command for command in commands if not command["admin"]]
         msg = ""
         for command in commands:
             msg += f"**Command Name:** {command['name']}\n**Usage:** {command['usage']}\n**Description:** {command['desc']}\n\n"
