@@ -76,7 +76,6 @@ class Shop(commands.Cog):
                 async for entry in cursor:
                     member_id, guild_id, last_paid = entry
                     if last_paid <= time.time() - (24 * 3600):
-                        print(last_paid, time.time() - (24 * 3600))
                         bal = await get_balance(guild_id, member_id)
                         guild = self.bot.get_guild(guild_id)
                         channel = guild.get_channel(await get_channel(guild_id, "bills"))

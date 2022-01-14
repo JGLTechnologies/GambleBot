@@ -34,7 +34,6 @@ class BlackJackMenu(disnake.ui.Select):
         if inter.author.id != self.view.author:
             return
         bal = await get_balance(inter.guild_id, inter.author.id)
-        print(bal)
         if bal <= 0:
             await inter.channel.send("You are out of money.", delete_after=7)
             try:
