@@ -112,7 +112,6 @@ class ChangeBet(disnake.ui.Button):
             return
         await msg.delete()
         if bet > bal:
-            await msg.delete()
             await inter.followup.send("You do not have enough money.", ephemeral=True)
             return
         self.view.rps.bet = bet
