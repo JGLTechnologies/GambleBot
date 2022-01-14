@@ -142,7 +142,7 @@ class Credit(commands.Cog):
             async with db.execute("SELECT id,guild,member,amount,due_date,message,channel FROM credit") as cursor:
                 async for entry in cursor:
                     id, guild, member, amount, due_date, message, channel = entry
-                    async with await db.execute("DELETE FROM credit WHERE id=?", (id,)):
+                    async with db.execute("DELETE FROM credit WHERE id=?", (id,)):
                         pass
                     if time.time() >= due_date:
                         guild = self.bot.get_guild(guild)
@@ -153,7 +153,7 @@ class Credit(commands.Cog):
                             continue
                         try:
                             await channel.fetch_message(message)
-                        except Exception:
+                        except disnake.NotFound:
                             continue
                         member = guild.get_member(member)
                         if member is not None:
