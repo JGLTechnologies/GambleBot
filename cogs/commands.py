@@ -264,7 +264,9 @@ class Commands(commands.Cog):
                     "desc": "There was a slight decrease in the market, and you lost ${pay}! You now have ${money}.",
                     "percent": [91, 83, 75, 92, 93, 70, 90, 80, 75]},
                 {"desc": "There was a spike in the market, and you made ${pay}! You now have ${money}.",
-                 "percent": [150, 165, 175, 180, 190, 200, 220, 160, 170, 155, 300]}]
+                 "percent": [150, 165, 175, 180, 190, 200, 220, 160, 170, 155, 300]}, {
+                    "desc": "There was a slight increase in the market, and you made ${pay} in return! You now have ${money}.",
+                    "percent": [115, 141, 122, 143, 114, 135, 119, 120]}]
             stock = random.choice(stock_list)
             percent = random.choice(stock["percent"])
             desc = stock["desc"]
