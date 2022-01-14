@@ -1,11 +1,10 @@
 import random
 import time
-
 from db import set_balance, get_balance
 import disnake
 from disnake.ext import commands
 from collections import defaultdict
-from main import get_discord_date
+import asyncio
 
 rps_games = defaultdict(lambda: {})
 
@@ -90,45 +89,37 @@ class RPSMenu(disnake.ui.Select):
         await inter.response.edit_message(embed=embed)
 
 
-class INCR(disnake.ui.Button):
+class ChangeBet(disnake.ui.Button):
     async def callback(self, inter: disnake.MessageInteraction):
         if inter.author.id != self.view.author:
             return
+        await inter.response.defer()
         bal = await get_balance(inter.guild_id, inter.author.id)
-        if self.view.rps.bet > bal:
-            self.view.bet = bal
-        if self.view.rps.bet + 1000 <= bal:
-            self.view.rps.bet += 1000
-        elif self.view.rps.bet + 100 <= bal:
-            self.view.rps.bet += 100
-        elif self.view.rps.bet + 10 <= bal:
-            self.view.rps.bet += 10
-        elif self.view.rps.bet + 1 <= bal:
-            self.view.rps.bet += 1
-        self.view.decr.style = disnake.ButtonStyle.red
+        msg = await inter.channel.send("Please type a bet in the chat.")
+        try:
+            message = await self.view.bot.wait_for('message',
+                                                check=lambda message: message.author.id == inter.author.id,
+                                                timeout=30)
+            await message.delete()
+            bet = round(float(message.content), 2)
+        except asyncio.TimeoutError:
+            await inter.followup.send("You took too long to type a bet.", ephemeral=True)
+            await msg.delete()
+            return
+        except ValueError:
+            await msg.delete()
+            await inter.followup.send("That bet is not a valid number.", ephemeral=True)
+            return
+        await msg.delete()
+        if bet > bal:
+            await msg.delete()
+            await inter.followup.send("You do not have enough money.", ephemeral=True)
+            return
+        self.view.rps.bet = bet
         embed = disnake.Embed(
             description=f"Your current balance: ${bal}\nBet: ${self.view.rps.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
             title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
-        await inter.response.edit_message(embed=embed)
-
-
-class DECR(disnake.ui.Button):
-    async def callback(self, inter: disnake.MessageInteraction):
-        if inter.author.id != self.view.author:
-            return
-        if self.view.rps.bet - 1000 > 0:
-            self.view.rps.bet -= 1000
-        elif self.view.rps.bet - 100 > 0:
-            self.view.rps.bet -= 100
-        elif self.view.rps.bet - 10 > 0:
-            self.view.rps.bet -= 10
-        elif self.view.rps.bet - 1 > 0:
-            self.view.rps.bet -= 1
-        self.view.incr.style = disnake.ButtonStyle.blurple
-        embed = disnake.Embed(
-            description=f"Your current balance: ${await get_balance(inter.guild_id, inter.author.id)}\nBet: ${self.view.rps.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
-            title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
-        await inter.response.edit_message(embed=embed)
+        await inter.message.edit(embed=embed)
 
 
 class RPSView(disnake.ui.View):
@@ -139,10 +130,8 @@ class RPSView(disnake.ui.View):
         self.channel = channel
         self.guild = guild
         self.rps = RPSMenu(bet)
-        self.incr = INCR(label="⏫", style=disnake.ButtonStyle.blurple)
-        self.decr = DECR(label="⏬", style=disnake.ButtonStyle.red)
-        self.add_item(self.incr)
-        self.add_item(self.decr)
+        self.change_bet = ChangeBet(label="Change Bet", style=disnake.ButtonStyle.blurple)
+        self.add_item(self.change_bet)
         self.add_item(self.rps)
 
     async def on_timeout(self) -> None:
@@ -158,7 +147,7 @@ class RPSView(disnake.ui.View):
         try:
             await self.bot.get_channel(self.channel).send(
                 f"{self.bot.get_guild(self.guild).get_member(self.author).mention}, your Rock Paper Scissors game has expired. Start a new one by doing `/rps`")
-        except:
+        except Exception:
             pass
 
 
@@ -167,11 +156,15 @@ class RPS(commands.Cog):
         self.bot: commands.AutoShardedInteractionBot = bot
 
     @commands.slash_command(name="rps")
+    async def rock_paper_scissors(self, inter: disnake.ApplicationCommandInteraction):
+        pass
+
     @commands.guild_only()
     @commands.bot_has_permissions(administrator=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
-    async def rock_paper_scissors(self, inter: disnake.ApplicationCommandInteraction,
-                                  bet: int = commands.Param()):
+    @rock_paper_scissors.sub_command(name="start")
+    async def start(self, inter: disnake.ApplicationCommandInteraction):
+        await inter.response.defer(ephemeral=True)
         if inter.author.id in rps_games[inter.guild_id]:
             channel_id = rps_games[inter.guild_id][inter.author.id][1]
             channel = inter.guild.get_channel(channel_id) or inter.guild.get_thread(channel_id)
@@ -182,11 +175,27 @@ class RPS(commands.Cog):
                     return
                 except disnake.NotFound:
                     del rps_games[inter.guild_id][inter.author.id]
+        msg = await inter.channel.send("Please type a bet in the chat.")
+        try:
+            message = await self.bot.wait_for('message',
+                                               check=lambda message: message.author.id == inter.author.id,
+                                               timeout=30)
+            await message.delete()
+            bet = round(float(message.content), 2)
+        except asyncio.TimeoutError:
+            await inter.followup.send("You took too long to type a bet.", ephemeral=True)
+            await msg.delete()
+            return
+        except ValueError:
+            await msg.delete()
+            await inter.followup.send("That bet is not a valid number.", ephemeral=True)
+            return
+        await msg.delete()
         if bet > await get_balance(inter.guild_id, inter.author.id):
-            await inter.response.send_message("You do not have enough money.", ephemeral=True)
+            await inter.followup.send("You do not have enough money.", ephemeral=True)
             return
         if bet < 1:
-            await inter.response.send_message("The bet must be at least 1.", ephemeral=True)
+            await inter.followup.send("The bet must be at least 1.", ephemeral=True)
             return
         view = RPSView(bet=bet, author=inter.author.id, guild=inter.guild_id,
                        channel=inter.channel_id, bot=self.bot)
@@ -196,8 +205,21 @@ class RPS(commands.Cog):
             title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
         message = await inter.channel.send(inter.author.mention, embed=embed,
                                            view=view)
-        rps_games[inter.guild_id][inter.author.id] = [message.id, inter.channel_id]
-        await inter.response.send_message("Successfully started a Rock Paper Scissors game.", ephemeral=True)
+        rps_games[inter.guild_id][inter.author.id] = [message.id, inter.channel_id, view]
+        await inter.followup.send("Successfully started a Rock Paper Scissors game.", ephemeral=True)
+
+    @commands.guild_only()
+    @commands.bot_has_permissions(administrator=True)
+    @rock_paper_scissors.sub_command(name="cancel")
+    async def cancel(self, inter: disnake.ApplicationCommandInteraction):
+        try:
+            rps_games[inter.guild_id][inter.author.id]
+        except KeyError:
+            await inter.response.send_message("You do not have a Rock Paper Scissors game in progress.", ephemeral=True)
+            return
+        rps_games[inter.guild_id][inter.author.id][2].stop()
+        del rps_games[inter.guild_id][inter.author.id]
+        await inter.response.send_message("Successfully canceled your Rock Paper Scissors game.", ephemeral=True)
 
 
 def setup(bot):
