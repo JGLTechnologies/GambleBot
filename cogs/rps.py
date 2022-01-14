@@ -163,7 +163,6 @@ class RPS(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.member)
     @rock_paper_scissors.sub_command(name="start")
     async def start(self, inter: disnake.ApplicationCommandInteraction):
-        await inter.response.defer(ephemeral=True)
         if inter.author.id in rps_games[inter.guild_id]:
             channel_id = rps_games[inter.guild_id][inter.author.id][1]
             channel = inter.guild.get_channel(channel_id) or inter.guild.get_thread(channel_id)
@@ -174,6 +173,7 @@ class RPS(commands.Cog):
                     return
                 except disnake.NotFound:
                     del rps_games[inter.guild_id][inter.author.id]
+        await inter.response.defer(ephemeral=True)
         msg = await inter.channel.send("Please type a bet in the chat.")
         try:
             message = await self.bot.wait_for('message',
