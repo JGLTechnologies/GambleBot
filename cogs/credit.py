@@ -47,7 +47,7 @@ class Credit(commands.Cog):
                 if inter.author.id != member_id:
                     return
                 bal = await get_balance(inter.guild_id, inter.author.id)
-                if bal - amount * 1.5 <= 0:
+                if bal - amount * 1.5 < 0:
                     await inter.response.send_message("You do not have enough money.", ephemeral=True)
                     return
                 try:

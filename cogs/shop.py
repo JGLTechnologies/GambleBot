@@ -79,7 +79,7 @@ class Shop(commands.Cog):
                         bal = await get_balance(guild_id, member_id)
                         guild = self.bot.get_guild(guild_id)
                         channel = guild.get_channel(await get_channel(guild_id, "bills"))
-                        if bal - 100000 <= 0:
+                        if bal - 100000 < 0:
                             if channel is not None:
                                 await channel.send(
                                     f"{guild.get_member(member_id).mention}, you do not have enough money to pay for security, so your subscription has been canceled.")
