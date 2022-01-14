@@ -97,11 +97,18 @@ class Credit(commands.Cog):
             )"""):
                 pass
             await db.commit()
-            async with db.execute("SELECT * FROM credit WHERE guild=? and member=?",
+            async with db.execute("SELECT id,message,channel FROM credit WHERE guild=? and member=?",
                                   (inter.guild_id, inter.author.id)) as cursor:
-                if await cursor.fetchone() is not None:
+                entry = await cursor.fetchone()
+                id, msg, channel = entry
+                try:
+                    await inter.guild.get_channel(channel).fetch_message(msg)
                     await inter.response.send_message("You already have an unpaid credit bill.", ephemeral=True)
                     return
+                except disnake.NotFound:
+                    async with db.execute("DELETE FROM credit WHERE id=?", (id,)):
+                        pass
+                    await db.commit()
         await self.moving_window.hit(self.item, [str(inter.author.id), str(inter.guild_id)])
         embed = disnake.Embed(title="Credit Bill", color=disnake.Color.blurple())
         embed.add_field(inline=False, name="Amount Owed", value=f"${amount * 1.5}")
@@ -142,9 +149,10 @@ class Credit(commands.Cog):
             async with db.execute("SELECT id,guild,member,amount,due_date,message,channel FROM credit") as cursor:
                 async for entry in cursor:
                     id, guild, member, amount, due_date, message, channel = entry
-                    async with db.execute("DELETE FROM credit WHERE id=?", (id,)):
-                        pass
                     if time.time() >= due_date:
+                        async with db.execute("DELETE FROM credit WHERE id=?", (id,)):
+                            pass
+                        await db.commit()
                         guild = self.bot.get_guild(guild)
                         if guild is None:
                             continue

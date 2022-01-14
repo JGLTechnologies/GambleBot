@@ -150,11 +150,11 @@ class RPSView(disnake.ui.View):
             msg = await self.bot.get_channel(self.channel).fetch_message(rps_games[self.guild][self.author][0])
             await msg.delete()
         except Exception:
-            try:
-                del rps_games[self.guild][self.author]
-            except KeyError:
-                pass
-            return
+            pass
+        try:
+            del rps_games[self.guild][self.author]
+        except KeyError:
+            pass
         try:
             await self.bot.get_channel(self.channel).send(
                 f"{self.bot.get_guild(self.guild).get_member(self.author).mention}, your Rock Paper Scissors game has expired. Start a new one by doing `/rps`")
