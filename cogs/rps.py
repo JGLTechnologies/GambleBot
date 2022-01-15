@@ -148,7 +148,7 @@ class RPSView(disnake.ui.View):
             pass
         try:
             await self.bot.get_channel(self.channel).send(
-                f"{self.bot.get_guild(self.guild).get_member(self.author).mention}, your Rock Paper Scissors game has expired. Start a new one by doing `/rps`")
+                f"{self.bot.get_guild(self.guild).get_member(self.author).mention}, your Rock Paper Scissors game has expired. Start a new one by doing `/rps start`")
         except Exception:
             pass
 

@@ -85,7 +85,7 @@ class BlackJackView(disnake.ui.View):
         try:
             await self.bot.get_channel(self.channel).send(
                 f"{self.bot.get_guild(self.guild).get_member(self.author).mention}, your Blackjack game has expired. "
-                "Start a new one by doing `/rps`")
+                "Start a new one by doing `/blackjack start`")
         except Exception:
             pass
 
