@@ -229,7 +229,7 @@ class Commands(commands.Cog):
             beg = random.choice(beg_list)
             pay = random.choice(beg["pay"])
             desc = beg["desc"]
-        msg = desc.format(pay=pay, money=bal + pay)
+        msg = desc.format(pay=abs(pay), money=bal + pay)
         await inter.response.send_message(msg)
         await set_balance(inter.guild_id, inter.author.id, bal + pay)
 

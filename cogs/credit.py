@@ -30,7 +30,6 @@ class Credit(commands.Cog):
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 guild INTEGER,
                 member INTEGER,
-                channel INTEGER,
                 message INTEGER,
                 amount FLOAT,
                 due_date INTEGER
@@ -90,18 +89,17 @@ class Credit(commands.Cog):
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 guild INTEGER,
                 member INTEGER,
-                channel INTEGER,
                 message INTEGER,
                 amount FLOAT,
                 due_date INTEGER
             )"""):
                 pass
             await db.commit()
-            async with db.execute("SELECT id,message,channel FROM credit WHERE guild=? and member=?",
+            async with db.execute("SELECT id,message FROM credit WHERE guild=? and member=?",
                                   (inter.guild_id, inter.author.id)) as cursor:
                 entry = await cursor.fetchone()
                 if entry is not None:
-                    id, msg, channel = entry
+                    id, msg = entry
                     try:
                         await inter.guild.get_channel(channel).fetch_message(msg)
                         await inter.response.send_message("You already have an unpaid credit bill.", ephemeral=True)
@@ -140,17 +138,19 @@ class Credit(commands.Cog):
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 guild INTEGER,
                 member INTEGER,
-                channel INTEGER,
                 message INTEGER,
                 amount FLOAT,
                 due_date INTEGER
             )"""):
                 pass
             await db.commit()
-            async with db.execute("SELECT id,guild,member,amount,due_date,message,channel FROM credit") as cursor:
+            async with db.execute("SELECT id,guild,member,amount,due_date,message FROM credit") as cursor:
                 async for entry in cursor:
-                    id, guild, member, amount, due_date, message, channel = entry
+                    id, guild, member, amount, due_date, message = entry
                     if time.time() >= due_date:
+                        channel = await get_channel(guild, "bills")
+                        if channel is None:
+                            continue
                         async with db.execute("DELETE FROM credit WHERE id=?", (id,)):
                             pass
                         await db.commit()

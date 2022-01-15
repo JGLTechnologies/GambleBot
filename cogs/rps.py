@@ -101,14 +101,17 @@ class ChangeBet(disnake.ui.Button):
                                                    check=lambda message: message.author.id == inter.author.id,
                                                    timeout=30)
             await message.delete()
-            bet = round(int(message.content), 2)
+            try:
+                bet = int(message.content)
+            except ValueError:
+                bet = round(float(message.content), 2)
         except asyncio.TimeoutError:
             await inter.followup.send("You took too long to type a bet.", ephemeral=True)
             await msg.delete()
             return
         except ValueError:
             await msg.delete()
-            await inter.followup.send("That bet is not a valid integer.", ephemeral=True)
+            await inter.followup.send("That bet is not a valid number.", ephemeral=True)
             return
         await msg.delete()
         if bet > bal:
@@ -180,14 +183,17 @@ class RPS(commands.Cog):
                                               check=lambda message: message.author.id == inter.author.id,
                                               timeout=30)
             await message.delete()
-            bet = round(int(message.content), 2)
+            try:
+                bet = int(message.content)
+            except ValueError:
+                bet = round(float(message.content), 2)
         except asyncio.TimeoutError:
             await inter.followup.send("You took too long to type a bet.", ephemeral=True)
             await msg.delete()
             return
         except ValueError:
             await msg.delete()
-            await inter.followup.send("That bet is not a valid integer.", ephemeral=True)
+            await inter.followup.send("That bet is not a valid number.", ephemeral=True)
             return
         await msg.delete()
         if bet > await get_balance(inter.guild_id, inter.author.id):
