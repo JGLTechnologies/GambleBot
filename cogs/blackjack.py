@@ -23,7 +23,8 @@ class PlayAgain(disnake.ui.Button):
                 pass
             return
         if self.view.rps.bet > bal:
-            self.bet = bal
+            self.view.bet = bal
+
 
 class ChangeBet(disnake.ui.Button):
     async def callback(self, inter: disnake.MessageInteraction):
@@ -34,10 +35,13 @@ class ChangeBet(disnake.ui.Button):
         msg = await inter.channel.send("Please type a bet in the chat.")
         try:
             message = await self.view.bot.wait_for('message',
-                                                check=lambda message: message.author.id == inter.author.id,
-                                                timeout=30)
+                                                   check=lambda message: message.author.id == inter.author.id,
+                                                   timeout=30)
             await message.delete()
-            bet = round(float(message.content), 2)
+            try:
+                bet = int(message.content)
+            except ValueError:
+                bet = round(float(message.content), 2)
         except asyncio.TimeoutError:
             await inter.followup.send("You took too long to type a bet.", ephemeral=True)
             await msg.delete()
@@ -47,16 +51,21 @@ class ChangeBet(disnake.ui.Button):
             await inter.followup.send("That bet is not a valid number.", ephemeral=True)
             return
         await msg.delete()
+        if bet > bal:
+            await inter.followup.send("You do not have enough money.", ephemeral=True)
+            return
         self.view.rps.bet = bet
         embed = disnake.Embed(
             description=f"Your current balance: ${bal}\nBet: ${self.view.rps.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
-            title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
+            title=f"{str(inter.author)}'s Blackjack Game", color=disnake.Color.blurple())
         await inter.message.edit(embed=embed)
 
+
 class BlackJackView(disnake.ui.View):
-    def __init__(self, bet: int, author: int, guild: int, channel: int):
+    def __init__(self, bet: int, author: int, guild: int, channel: int, bot: commands.AutoShardedInteractionBot):
         super().__init__(timeout=3600)
         self.author = author
+        self.bot = bot
         self.channel = channel
         self.guild = guild
         self.bet = bet
@@ -75,7 +84,8 @@ class BlackJackView(disnake.ui.View):
             pass
         try:
             await self.bot.get_channel(self.channel).send(
-                f"{self.bot.get_guild(self.guild).get_member(self.author).mention}, your Blackjack game has expired. Start a new one by doing `/rps`")
+                f"{self.bot.get_guild(self.guild).get_member(self.author).mention}, your Blackjack game has expired. "
+                "Start a new one by doing `/blackjack start`")
         except Exception:
             pass
 
@@ -110,7 +120,10 @@ class BlackJack(commands.Cog):
                                                check=lambda message: message.author.id == inter.author.id,
                                                timeout=30))
             await message.delete()
-            bet = round(float(message.content), 2)
+            try:
+                bet = int(message.content)
+            except ValueError:
+                bet = round(float(message.content), 2)
         except asyncio.TimeoutError:
             await inter.followup.send("You took too long to type a bet.", ephemeral=True)
             await msg.delete()
@@ -127,7 +140,7 @@ class BlackJack(commands.Cog):
             await inter.followup.send("The bet must be at least 1.", ephemeral=True)
             return
         view = BlackJackView(bet=bet, author=inter.author.id, guild=inter.guild_id,
-                             channel=inter.channel_id)
+                             channel=inter.channel_id, bot=self.bot)
         view.started_at = time.time()
         embed = disnake.Embed(
             description=f"Your current balance: ${await get_balance(inter.guild_id, inter.author.id)}\nBet: ${bet}\nGame Expires: <t:{round(view.started_at + 3600)}:R>",

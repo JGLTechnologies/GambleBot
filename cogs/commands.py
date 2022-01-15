@@ -151,8 +151,10 @@ class Commands(commands.Cog):
 
     @commands.slash_command(name="commands")
     async def help_command(self, inter: disnake.ApplicationCommandInteraction):
-        commands = [{"name": "Rock Paper Scissors", "usage": "`/rps bet:[integer]`",
-                     "desc": "Stats a game of rock paper scissors for money.", "admin": False},
+        commands = [{"name": "Rock Paper Scissors Start", "usage": "`/rps start`",
+                     "desc": "Stats a game of Rock Paper Scissors for money.", "admin": False},
+                    {"name": "Rock Paper Scissors Cancel", "usage": "`/rps cancel`",
+                     "desc": "Cancels your current Rock Paper Scissors game", "admin": False},
                     {"name": "Account Info", "usage": "`/accinfo member:[optional member]`",
                      "desc": "Shows information for an account.", "admin": False},
                     {"name": "Apply For Credit", "usage": "`/credit amount:[integer]`",
@@ -229,7 +231,7 @@ class Commands(commands.Cog):
             beg = random.choice(beg_list)
             pay = random.choice(beg["pay"])
             desc = beg["desc"]
-        msg = desc.format(pay=pay, money=bal + pay)
+        msg = desc.format(pay=abs(pay), money=bal + pay)
         await inter.response.send_message(msg)
         await set_balance(inter.guild_id, inter.author.id, bal + pay)
 
