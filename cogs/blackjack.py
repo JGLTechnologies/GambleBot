@@ -145,6 +145,9 @@ class ChangeBet(disnake.ui.Button):
             if bet > bal:
                 await inter.followup.send("You do not have enough money.", ephemeral=True)
                 return
+            if bet > 50000:
+                await inter.followup.send("The max bet is $50,000.", ephemeral=True)
+                return
             self.view.bet = bet
             embed = disnake.Embed(
                 description=f"Your current balance: ${bal}\nBet: ${self.view.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
@@ -505,6 +508,9 @@ class BlackJack(commands.Cog):
         await msg.delete()
         if bet > await get_balance(inter.guild_id, inter.author.id):
             await inter.followup.send("You do not have enough money.", ephemeral=True)
+            return
+        if bet > 50000:
+            await inter.followup.send("The max bet is $50,000.", ephemeral=True)
             return
         if bet < 1:
             await inter.followup.send("The bet must be at least 1.", ephemeral=True)

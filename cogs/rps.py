@@ -117,6 +117,9 @@ class ChangeBet(disnake.ui.Button):
                 await inter.followup.send("That bet is not a valid number.", ephemeral=True)
                 return
             await msg.delete()
+            if bet > 50000:
+                await inter.followup.send("The max bet is $50,000.", ephemeral=True)
+                return
             if bet > bal:
                 await inter.followup.send("You do not have enough money.", ephemeral=True)
                 return
@@ -209,6 +212,9 @@ class RPS(commands.Cog):
         await msg.delete()
         if bet > await get_balance(inter.guild_id, inter.author.id):
             await inter.followup.send("You do not have enough money.", ephemeral=True)
+            return
+        if bet > 50000:
+            await inter.followup.send("The max bet is $50,000.", ephemeral=True)
             return
         if bet < 1:
             await inter.followup.send("The bet must be at least 1.", ephemeral=True)
