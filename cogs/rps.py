@@ -93,42 +93,45 @@ class ChangeBet(disnake.ui.Button):
     async def callback(self, inter: disnake.MessageInteraction):
         if inter.author.id != self.view.author:
             return
-        await inter.response.defer()
-        bal = await get_balance(inter.guild_id, inter.author.id)
-        msg = await inter.channel.send("Please type a bet in the chat.")
-        try:
-            message = await self.view.bot.wait_for('message',
-                                                   check=lambda message: message.author.id == inter.author.id,
-                                                   timeout=30)
-            await message.delete()
+        if self.view.bet_lock.locked():
+            return
+        async with self.view.bet_lock:
+            await inter.response.defer()
+            bal = await get_balance(inter.guild_id, inter.author.id)
+            msg = await inter.channel.send("Please type a bet in the chat.")
             try:
-                bet = int(message.content)
+                message = await self.view.bot.wait_for('message',
+                                                       check=lambda message: message.author.id == inter.author.id,
+                                                       timeout=30)
+                await message.delete()
+                try:
+                    bet = int(message.content)
+                except ValueError:
+                    bet = round(float(message.content), 2)
+            except asyncio.TimeoutError:
+                await inter.followup.send("You took too long to type a bet.", ephemeral=True)
+                await msg.delete()
+                return
             except ValueError:
-                bet = round(float(message.content), 2)
-        except asyncio.TimeoutError:
-            await inter.followup.send("You took too long to type a bet.", ephemeral=True)
+                await msg.delete()
+                await inter.followup.send("That bet is not a valid number.", ephemeral=True)
+                return
             await msg.delete()
-            return
-        except ValueError:
-            await msg.delete()
-            await inter.followup.send("That bet is not a valid number.", ephemeral=True)
-            return
-        await msg.delete()
-        if bet > bal:
-            await inter.followup.send("You do not have enough money.", ephemeral=True)
-            return
-        self.view.rps.bet = bet
-        embed = disnake.Embed(
-            description=f"Your current balance: ${bal}\nBet: ${self.view.rps.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
-            title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
-        try:
-            await inter.message.edit(embed=embed)
-        except:
+            if bet > bal:
+                await inter.followup.send("You do not have enough money.", ephemeral=True)
+                return
+            self.view.rps.bet = bet
+            embed = disnake.Embed(
+                description=f"Your current balance: ${bal}\nBet: ${self.view.rps.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
+                title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             try:
-                rps_games[inter.guild_id][inter.author.id][2].stop()
+                await inter.message.edit(embed=embed)
             except:
-                pass
-            return
+                try:
+                    rps_games[inter.guild_id][inter.author.id][2].stop()
+                except:
+                    pass
+                return
 
 
 class RPSView(disnake.ui.View):
@@ -142,6 +145,7 @@ class RPSView(disnake.ui.View):
         self.change_bet = ChangeBet(label="Change Bet", style=disnake.ButtonStyle.blurple)
         self.add_item(self.change_bet)
         self.add_item(self.rps)
+        self.bet_lock = asyncio.Semaphore(1)
 
     async def on_timeout(self) -> None:
         try:

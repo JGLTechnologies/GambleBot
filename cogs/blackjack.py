@@ -2,7 +2,6 @@ import asyncio
 import random
 import time
 import typing
-
 from db import set_balance, get_balance
 import disnake
 from disnake.ext import commands
@@ -10,141 +9,154 @@ from collections import defaultdict
 
 blackjack_games = defaultdict(lambda: {})
 symbols = ["♣", "❤", "♠", "♦"]
+second_items = {}
 
 
 class PlayAgain(disnake.ui.Button):
     async def callback(self, inter: disnake.MessageInteraction):
         if inter.author.id != self.view.author:
             return
-        if self.view.game:
-            await inter.response.send_message("you are already playing a game.")
+        if self.view.pa_lock.locked():
             return
-        await self.view.start_game(inter)
+        async with self.view.pa_lock:
+            if self.view.game:
+                await inter.response.send_message("you are already playing a game.")
+                return
+            await self.view.start_game(inter)
 
 
 class Stand(disnake.ui.Button):
     async def callback(self, inter: disnake.MessageInteraction):
         if inter.author.id != self.view.author:
             return
-        if not self.view.game:
+        if self.view.stand_lock.locked():
             return
-        await self.view.stand(inter)
+        async with self.view.stand_lock:
+            if not self.view.game:
+                return
+            await self.view.stand(inter)
 
 
 class Hit(disnake.ui.Button):
     async def callback(self, inter: disnake.MessageInteraction):
         if inter.author.id != self.view.author:
             return
-        if not self.view.game:
+        if self.view.hit_lock.locked():
             return
-        card = random.choice(self.view.deck)
-        self.view.deck.remove(card)
-        self.view.player.append(f"{random.choice(symbols)} {card}")
-        dealer = 0
-        player = 0
-        bal = await get_balance(inter.guild_id, inter.author.id)
-        if self.view.bet > bal:
-            self.view.bet = bal
-        for card in self.view.dealer:
-            symbol, num = card.split(" ")
-            if num == "A":
-                if self.view.get_num(self.view.dealer) + 11 > 21:
-                    dealer += 1
-                    break
+        async with self.view.hit_lock:
+            if not self.view.game:
+                return
+            card = random.choice(self.view.deck)
+            self.view.deck.remove(card)
+            self.view.player.append(f"{random.choice(symbols)} {card}")
+            dealer = 0
+            player = 0
+            bal = await get_balance(inter.guild_id, inter.author.id)
+            if self.view.bet > bal:
+                self.view.bet = bal
+            for card in self.view.dealer:
+                symbol, num = card.split(" ")
+                if num == "A":
+                    if self.view.get_num(self.view.dealer) + 11 > 21:
+                        dealer += 1
+                        break
+                    else:
+                        dealer += 11
+                        break
+                if num in ["J", "Q", "K"]:
+                    dealer += 10
                 else:
-                    dealer += 11
-                    break
-            if num in ["J", "Q", "K"]:
-                dealer += 10
-            else:
-                dealer += int(num)
-            break
-        for card in self.view.player:
-            symbol, num = card.split(" ")
-            if num == "A":
-                if self.view.get_num(self.view.player) + 11 > 21:
-                    player += 1
-                    continue
+                    dealer += int(num)
+                break
+            for card in self.view.player:
+                symbol, num = card.split(" ")
+                if num == "A":
+                    if self.view.get_num(self.view.player) + 11 > 21:
+                        player += 1
+                        continue
+                    else:
+                        player += 11
+                        continue
+                if num in ["J", "Q", "K"]:
+                    player += 10
                 else:
-                    player += 11
-                    continue
-            if num in ["J", "Q", "K"]:
-                player += 10
+                    player += int(num)
+            player_string = ""
+            dealer_string = ""
+            for card in self.view.player:
+                symbol, num = card.split(" ")
+                player_string += f"[{symbol} {num}] "
+            for card in self.view.dealer:
+                symbol, num = card.split(" ")
+                dealer_string += f"[{symbol} {num}] "
+                break
+            embed = disnake.Embed(color=disnake.Color.blurple(),
+                                  title=f"{str(inter.author)}'s Blackjack Game")
+            if player > 21:
+                bal = round(bal - self.view.bet, 2)
+                await set_balance(inter.guild_id, inter.author.id, bal)
+                embed.description = f"**You Busted!**\nYour current balance: ${bal}\nBet: ${self.view.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>"
+                self.view.add_item(self.view.play_again)
+                self.view.add_item(self.view.change_bet)
+                self.view.game = False
+                self.view.remove_item(self)
+                self.view.remove_item(self.view.stand_button)
+            elif player == 21:
+                await self.view.stand(inter)
+                return
             else:
-                player += int(num)
-        player_string = ""
-        dealer_string = ""
-        for card in self.view.player:
-            symbol, num = card.split(" ")
-            player_string += f"[{symbol} {num}] "
-        for card in self.view.dealer:
-            symbol, num = card.split(" ")
-            dealer_string += f"[{symbol} {num}] "
-            break
-        embed = disnake.Embed(color=disnake.Color.blurple(),
-                              title=f"{str(inter.author)}'s Blackjack Game")
-        if player > 21:
-            bal = round(bal - self.view.bet, 2)
-            await set_balance(inter.guild_id, inter.author.id, bal)
-            embed.description = f"**You Busted!**\nYour current balance: ${bal}\nBet: ${self.view.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>"
-            self.view.add_item(self.view.play_again)
-            self.view.add_item(self.view.change_bet)
-            self.view.game = False
-            self.view.remove_item(self)
-            self.view.remove_item(self.view.stand_button)
-        elif player == 21:
-            await self.view.stand(inter)
-            return
-        else:
-            embed.description = f"Your current balance: ${bal}\nBet: ${self.view.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>"
-        embed.add_field(inline=False, name=f"Dealer's Hand ({dealer})", value=dealer_string)
-        embed.add_field(inline=False, name=f"{str(inter.author)}'s Hand ({player})", value=player_string)
-        await inter.response.edit_message(embed=embed, view=self.view)
+                embed.description = f"Your current balance: ${bal}\nBet: ${self.view.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>"
+            embed.add_field(inline=False, name=f"Dealer's Hand ({dealer})", value=dealer_string)
+            embed.add_field(inline=False, name=f"{str(inter.author)}'s Hand ({player})", value=player_string)
+            await inter.response.edit_message(embed=embed, view=self.view)
 
 
 class ChangeBet(disnake.ui.Button):
     async def callback(self, inter: disnake.MessageInteraction):
         if inter.author.id != self.view.author:
             return
-        if self.view.game:
-            await inter.response.send_message("You cannot change your bet when there is a game in progress.")
+        if self.view.bet_lock.locked():
             return
-        await inter.response.defer()
-        bal = await get_balance(inter.guild_id, inter.author.id)
-        msg = await inter.channel.send("Please type a bet in the chat.")
-        try:
-            message = await self.view.bot.wait_for('message',
-                                                   check=lambda message: message.author.id == inter.author.id,
-                                                   timeout=30)
-            await message.delete()
+        async with self.view.bet_lock:
+            if self.view.game:
+                await inter.response.send_message("You cannot change your bet when there is a game in progress.")
+                return
+            await inter.response.defer()
+            bal = await get_balance(inter.guild_id, inter.author.id)
+            msg = await inter.channel.send("Please type a bet in the chat.")
             try:
-                bet = int(message.content)
+                message = await self.view.bot.wait_for('message',
+                                                       check=lambda message: message.author.id == inter.author.id,
+                                                       timeout=30)
+                await message.delete()
+                try:
+                    bet = int(message.content)
+                except ValueError:
+                    bet = round(float(message.content), 2)
+            except asyncio.TimeoutError:
+                await inter.followup.send("You took too long to type a bet.", ephemeral=True)
+                await msg.delete()
+                return
             except ValueError:
-                bet = round(float(message.content), 2)
-        except asyncio.TimeoutError:
-            await inter.followup.send("You took too long to type a bet.", ephemeral=True)
+                await msg.delete()
+                await inter.followup.send("That bet is not a valid number.", ephemeral=True)
+                return
             await msg.delete()
-            return
-        except ValueError:
-            await msg.delete()
-            await inter.followup.send("That bet is not a valid number.", ephemeral=True)
-            return
-        await msg.delete()
-        if bet > bal:
-            await inter.followup.send("You do not have enough money.", ephemeral=True)
-            return
-        self.view.bet = bet
-        embed = disnake.Embed(
-            description=f"Your current balance: ${bal}\nBet: ${self.view.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
-            title=f"{str(inter.author)}'s Blackjack Game", color=disnake.Color.blurple())
-        try:
-            await inter.message.edit(embed=embed)
-        except:
+            if bet > bal:
+                await inter.followup.send("You do not have enough money.", ephemeral=True)
+                return
+            self.view.bet = bet
+            embed = disnake.Embed(
+                description=f"Your current balance: ${bal}\nBet: ${self.view.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
+                title=f"{str(inter.author)}'s Blackjack Game", color=disnake.Color.blurple())
             try:
-                blackjack_games[inter.guild_id][inter.author.id][2].stop()
+                await inter.message.edit(embed=embed)
             except:
-                pass
-            return
+                try:
+                    blackjack_games[inter.guild_id][inter.author.id][2].stop()
+                except:
+                    pass
+                return
 
 
 class BlackJackView(disnake.ui.View):
@@ -164,6 +176,10 @@ class BlackJackView(disnake.ui.View):
         self.dealer = None
         self.game = True
         self.deck = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "K", "Q", "J"] * 24
+        self.stand_lock = asyncio.Semaphore(1)
+        self.hit_lock = asyncio.Semaphore(1)
+        self.pa_lock = asyncio.Semaphore(1)
+        self.bet_lock = asyncio.Semaphore(1)
 
     def generate_deck(self):
         self.deck = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "K", "Q", "J"] * 24
