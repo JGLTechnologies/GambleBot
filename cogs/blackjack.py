@@ -345,7 +345,7 @@ class BlackJackView(disnake.ui.View):
             player_string += f"[{symbol} {num}] "
         embed = disnake.Embed(
             description=f"Your current balance: ${bal}\nBet: ${self.bet}\nGame Expires: <t:{round(self.started_at + 3600)}:R>",
-            color=disnake.Color.blurple())
+            color=disnake.Color.blurple(), title=f"{str(inter.author)}'s Blackjack Game")
         while dealer < 17:
             await asyncio.sleep(1)
             dealer = 0

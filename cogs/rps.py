@@ -49,24 +49,24 @@ class RPSMenu(disnake.ui.Select):
         computer_choice = random.choice(["rock", "paper", "scissors"])
         if player_choice == computer_choice:
             embed = disnake.Embed(
-                description=f"It's a tie!\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
+                description=f"**It's a tie!**\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
         elif player_choice == "rock" and computer_choice == "scissors":
             bal += self.bet
             embed = disnake.Embed(
-                description=f"You won!\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
+                description=f"**You won!**\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             await set_balance(inter.guild_id, inter.author.id, bal)
         elif player_choice == "paper" and computer_choice == "rock":
             bal += self.bet
             embed = disnake.Embed(
-                description=f"You won!\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
+                description=f"**You won!**\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             await set_balance(inter.guild_id, inter.author.id, bal)
         elif player_choice == "scissors" and computer_choice == "paper":
             bal += self.bet
             embed = disnake.Embed(
-                description=f"You won!\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
+                description=f"**You won!**\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             await set_balance(inter.guild_id, inter.author.id, bal)
         else:
@@ -83,7 +83,7 @@ class RPSMenu(disnake.ui.Select):
                 await set_balance(inter.guild_id, inter.author.id, bal)
                 return
             embed = disnake.Embed(
-                description=f"You lost!\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
+                description=f"**You lost!**\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             await set_balance(inter.guild_id, inter.author.id, bal)
         await inter.response.edit_message(embed=embed)
