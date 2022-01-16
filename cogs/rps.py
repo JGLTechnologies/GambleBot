@@ -121,7 +121,14 @@ class ChangeBet(disnake.ui.Button):
         embed = disnake.Embed(
             description=f"Your current balance: ${bal}\nBet: ${self.view.rps.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
             title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
-        await inter.message.edit(embed=embed)
+        try:
+            await inter.message.edit(embed=embed)
+        except:
+            try:
+                rps_games[inter.guild_id][inter.author.id][2].stop()
+            except:
+                pass
+            return
 
 
 class RPSView(disnake.ui.View):
