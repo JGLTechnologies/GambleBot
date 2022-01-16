@@ -347,6 +347,7 @@ class BlackJackView(disnake.ui.View):
             description=f"Your current balance: ${bal}\nBet: ${self.bet}\nGame Expires: <t:{round(self.started_at + 3600)}:R>",
             color=disnake.Color.blurple())
         while dealer < 17:
+            await asyncio.sleep(1)
             dealer = 0
             dealer_string = ""
             embed.clear_fields()
@@ -377,7 +378,6 @@ class BlackJackView(disnake.ui.View):
                 except:
                     pass
                 return
-            await asyncio.sleep(1)
         dealer_string = ""
         for card in self.dealer:
             symbol, num = card.split(" ")
