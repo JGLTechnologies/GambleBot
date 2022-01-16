@@ -9,7 +9,6 @@ from disnake.ext import commands
 from collections import defaultdict
 
 blackjack_games = defaultdict(lambda: {})
-cards = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "K", "Q", "J"]
 symbols = ["♣", "❤", "♠", "♦"]
 
 
@@ -38,7 +37,9 @@ class Hit(disnake.ui.Button):
             return
         if not self.view.game:
             return
-        self.view.player.append(f"{random.choice(symbols)} {random.choice(cards)}")
+        card = random.choice(self.view.deck)
+        self.view.deck.remove(card)
+        self.view.player.append(f"{random.choice(symbols)} {card}")
         dealer = 0
         player = 0
         bal = await get_balance(inter.guild_id, inter.author.id)
@@ -162,6 +163,10 @@ class BlackJackView(disnake.ui.View):
         self.player = None
         self.dealer = None
         self.game = True
+        self.deck = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "K", "Q", "J"] * 24
+
+    def generate_deck(self):
+        self.deck = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "K", "Q", "J"] * 24
 
     async def on_timeout(self) -> None:
         try:
@@ -197,10 +202,18 @@ class BlackJackView(disnake.ui.View):
         self.remove_item(self.play_again)
         self.remove_item(self.change_bet)
         member = self.bot.get_guild(self.guild).get_member(self.author)
-        self.dealer = [f"{random.choice(symbols)} {random.choice(cards)}",
-                       f"{random.choice(symbols)} {random.choice(cards)}"]
-        self.player = [f"{random.choice(symbols)} {random.choice(cards)}",
-                       f"{random.choice(symbols)} {random.choice(cards)}"]
+        if len(self.deck) < 52:
+            self.generate_deck()
+        dealer_card_1 = random.choice(self.deck)
+        dealer_card_2 = random.choice(self.deck)
+        player_card_1 = random.choice(self.deck)
+        player_card_2 = random.choice(self.deck)
+        for card in [dealer_card_1, dealer_card_2, player_card_1, player_card_2]:
+            self.deck.remove(card)
+        self.dealer = [f"{random.choice(symbols)} {dealer_card_1}",
+                       f"{random.choice(symbols)} {dealer_card_2}"]
+        self.player = [f"{random.choice(symbols)} {player_card_1}",
+                       f"{random.choice(symbols)} {player_card_2}"]
         dealer = 0
         player = 0
         player_string = ""
@@ -351,7 +364,9 @@ class BlackJackView(disnake.ui.View):
             dealer = 0
             dealer_string = ""
             embed.clear_fields()
-            self.dealer.append(f"{random.choice(symbols)} {random.choice(cards)}")
+            card = random.choice(self.deck)
+            self.deck.remove(card)
+            self.dealer.append(f"{random.choice(symbols)} {card}")
             for card in self.dealer:
                 symbol, num = card.split(" ")
                 if num == "A":
