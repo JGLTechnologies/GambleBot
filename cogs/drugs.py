@@ -119,7 +119,7 @@ class Drugs(commands.Cog):
         embed.add_field(name="Upgraded", inline=False, value=str(u))
         await inter.response.send_message(embed=embed)
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(minutes=2)
     async def supplies_loop(self):
         async with aiosqlite.connect("bot.db") as db:
             async with db.execute("""CREATE TABLE IF NOT EXISTS business(
