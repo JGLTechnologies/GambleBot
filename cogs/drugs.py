@@ -6,6 +6,7 @@ from db import get_business_stats, has_business, update_business_stats, get_bala
 from limits import RateLimitItemPerMinute
 from limits.aio.storage import MemoryStorage
 from limits.aio.strategies import MovingWindowRateLimiter
+from db import get_channel
 
 from main import get_discord_date
 
@@ -25,6 +26,7 @@ class Drugs(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.AutoShardedInteractionBot = bot
         self.supplies_loop.start()
+        self.cops_loop.start()
         self.storage = MemoryStorage()
         self.moving_window = MovingWindowRateLimiter(self.storage)
 
@@ -52,7 +54,8 @@ class Drugs(commands.Cog):
         if s >= 1000:
             cartel = random.randrange(0, 15) == 1
             if cartel:
-                await inter.response.send_message("You were caught by the Mexican Cartel, and they took 20% of your supplies.")
+                await inter.response.send_message(
+                    "You were caught by the Mexican Cartel, and they took 20% of your supplies.")
                 await update_business_stats(inter.guild_id, inter.author.id, "drugs", product=p, supplies=s * .2,
                                             upgraded=u)
                 return
@@ -100,7 +103,8 @@ class Drugs(commands.Cog):
             return
         bal = await get_balance(inter.guild_id, inter.author.id)
         if bal < 100000:
-            await inter.response.send_message("You have to have at least $100,000 to upgrade this business.", ephemeral=True)
+            await inter.response.send_message("You have to have at least $100,000 to upgrade this business.",
+                                              ephemeral=True)
             return
         p, s, u = await get_business_stats(inter.guild_id, inter.author.id, "drugs")
         if bool(u):
@@ -108,7 +112,8 @@ class Drugs(commands.Cog):
             return
         await update_business_stats(inter.guild_id, inter.author.id, "drugs", product=p, supplies=s,
                                     upgraded=1)
-        await inter.response.send_message(f"You successfully upgraded your drug distribution business. You now have ${bal - 100000}")
+        await inter.response.send_message(
+            f"You successfully upgraded your drug distribution business. You now have ${bal - 100000}")
         await set_balance(inter.guild_id, inter.author.id, bal - 100000)
 
     @drugs.sub_command(name="info")
@@ -165,6 +170,53 @@ class Drugs(commands.Cog):
                             (round(product, 2), round(supplies, 2), u, guild, member, "drugs")):
                         pass
                 await db.commit()
+
+    @tasks.loop(hours=24)
+    async def cops_loop(self):
+        async with aiosqlite.connect("bot.db") as db:
+            async with db.execute("""CREATE TABLE IF NOT EXISTS business(
+                    member INTEGER,
+                    guild INTEGER,
+                    upgraded INTEGER,
+                    name TEXT,
+                    supplies INT,
+                    product INT,
+                    PRIMARY KEY (name, member, guild)
+                )"""):
+                pass
+            await db.commit()
+            async with db.execute("SELECT upgraded,supplies,member,guild,product FROM business WHERE name=?",
+                                  ("drugs",)) as cursor:
+                async for entry in cursor:
+                    u, supplies, member, guild, product = entry
+                    if not bool(u):
+                        busted = random.randrange(0, 50) == 1
+                    else:
+                        continue
+                    if busted:
+                        async with db.execute(
+                                "UPDATE business SET product=?,supplies=?,upgraded=? WHERE guild=? and member=? and name=?",
+                                (round(product / 2, 2), round(supplies, 2), u, guild, member, "drugs")):
+                            pass
+                        channel_id = await get_channel(guild, "bills")
+                        member = self.bot.get_guild(guild).get_member(member)
+                        if member is None:
+                            continue
+                        if channel_id is None:
+                            channel = None
+                        else:
+                            channel = self.bot.get_guild(guild).get_channel(channel_id)
+                        if channel is not None:
+                            await channel.send(
+                                f"{member.mention}, your drug distribution business was busted by the police. They took half of your supplies.")
+                        else:
+                            await member.send(
+                                f"{member.mention}, your drug distribution business was busted by the police. They took half of your supplies.")
+                await db.commit()
+
+    @cops_loop.before_loop
+    async def before_cops_loop(self):
+        await self.bot.wait_until_ready()
 
     @supplies_loop.before_loop
     async def before_supplies_loop(self):
