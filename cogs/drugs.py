@@ -167,8 +167,7 @@ class Drugs(commands.Cog):
                         continue
                     if self.bot.get_guild(guild).get_member(member) is None:
                         continue
-                    print(self.bot.get_guild(guild).get_member(member).status.online, self.bot.get_guild(guild).get_member(member).name)
-                    if not self.bot.get_guild(guild).get_member(member).status.online:
+                    if str(self.bot.get_guild(guild).get_member(member).status) != "online":
                         continue
                     if not bool(u):
                         if supplies < 2500:
