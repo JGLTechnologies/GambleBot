@@ -101,6 +101,15 @@ class Hit(disnake.ui.Button):
                 self.view.game = False
                 self.view.remove_item(self)
                 self.view.remove_item(self.view.stand_button)
+                if bal <= 0:
+                    await inter.channel.send(f"{inter.author.mention}, you are out of money.", delete_after=7)
+                    try:
+                        msg = await inter.channel.fetch_message(blackjack_games[inter.guild_id][inter.author.id][0])
+                        await msg.delete()
+                    except Exception:
+                        pass
+                    await set_balance(inter.guild_id, inter.author.id, bal)
+                    return
             elif player == 21:
                 await self.view.stand(inter)
                 return
@@ -450,6 +459,15 @@ class BlackJackView(disnake.ui.View):
             self.remove_item(self.hit)
             self.game = False
             embed.description = f"**You lost!**\nYour current balance: ${bal}\nBet: ${self.bet}\nGame Expires: <t:{round(self.started_at + 3600)}:R>"
+            if bal <= 0:
+                await inter.channel.send(f"{inter.author.mention}, you are out of money.", delete_after=7)
+                try:
+                    msg = await inter.channel.fetch_message(blackjack_games[inter.guild_id][inter.author.id][0])
+                    await msg.delete()
+                except Exception:
+                    pass
+                await set_balance(inter.guild_id, inter.author.id, bal)
+                return
         else:
             bal = round(bal + self.bet, 2)
             await set_balance(inter.guild_id, inter.author.id, bal)

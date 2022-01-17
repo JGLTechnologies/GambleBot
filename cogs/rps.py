@@ -76,7 +76,7 @@ class RPSMenu(disnake.ui.Select):
             if bal <= 0:
                 await inter.channel.send(f"{inter.author.mention}, you are out of money.", delete_after=7)
                 try:
-                    msg = await inter.channel.fetch_message(rps_games[inter.guild_id][self.view.author][0])
+                    msg = await inter.channel.fetch_message(rps_games[inter.guild_id][inter.author.id][0])
                     await msg.delete()
                 except Exception:
                     pass
