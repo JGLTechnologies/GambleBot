@@ -50,7 +50,7 @@ class Hit(disnake.ui.Button):
                 return
             card = random.choice(self.view.deck)
             self.view.deck.remove(card)
-            self.view.player.append(f"{random.choice(symbols)} {card}")
+            self.view.player.append(f"{random.choice(symbols)} A")
             dealer = 0
             player = 0
             bal = await get_balance(inter.guild_id, inter.author.id)
@@ -63,7 +63,7 @@ class Hit(disnake.ui.Button):
                         dealer += 1
                         continue
                     dealer_ace = True
-                    if self.view.get_num(self.view.dealer, dealer_ace) > 21:
+                    if self.view.get_num(self.view.dealer) > 21:
                         dealer += 1
                         continue
                     else:
@@ -81,7 +81,7 @@ class Hit(disnake.ui.Button):
                         player += 1
                         continue
                     player_ace = True
-                    if self.view.get_num(self.view.player, player_ace) > 21:
+                    if self.view.get_num(self.view.player) > 21:
                         player += 1
                         continue
                     else:
@@ -223,8 +223,9 @@ class BlackJackView(disnake.ui.View):
         except Exception:
             pass
 
-    def get_num(self, cards: list, ace: bool) -> int:
+    def get_num(self, cards: list) -> int:
         num = 0
+        ace = False
         cards = [card.split(" ")[1] for card in cards]
         for card in cards:
             if card in ["J", "K", "Q"]:
@@ -234,6 +235,7 @@ class BlackJackView(disnake.ui.View):
                     num += 1
                 else:
                     num += 11
+                ace = True
             else:
                 num += int(card)
         return num
@@ -276,7 +278,7 @@ class BlackJackView(disnake.ui.View):
                     dealer += 1
                     continue
                 dealer_ace = True
-                if self.get_num(self.dealer, dealer_ace) > 21:
+                if self.get_num(self.dealer) > 21:
                     dealer += 1
                     continue
                 else:
@@ -293,7 +295,7 @@ class BlackJackView(disnake.ui.View):
                     player += 1
                     continue
                 player_ace = True
-                if self.get_num(self.player, player_ace) > 21:
+                if self.get_num(self.player) > 21:
                     player += 1
                     continue
                 else:
@@ -386,7 +388,7 @@ class BlackJackView(disnake.ui.View):
                     dealer += 1
                     continue
                 dealer_ace = True
-                if self.get_num(self.dealer, dealer_ace) > 21:
+                if self.get_num(self.dealer) > 21:
                     dealer += 1
                     continue
                 else:
@@ -403,7 +405,7 @@ class BlackJackView(disnake.ui.View):
                     player += 1
                     continue
                 player_ace = True
-                if self.get_num(self.player, player_ace) > 21:
+                if self.get_num(self.player) > 21:
                     player += 1
                     continue
                 else:
@@ -436,7 +438,7 @@ class BlackJackView(disnake.ui.View):
                         dealer += 1
                         continue
                     dealer_ace = True
-                    if self.get_num(self.dealer, dealer_ace) > 21:
+                    if self.get_num(self.dealer) > 21:
                         dealer += 1
                         continue
                     else:
