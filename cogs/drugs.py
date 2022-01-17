@@ -58,7 +58,10 @@ class Drugs(commands.Cog):
         await self.moving_window.hit(get_minute_item(2), ["steal", inter.guild_id, inter.author.id])
         p, s, u = await get_business_stats(inter.guild_id, inter.author.id, "drugs")
         if s >= 1000:
-            cartel = random.randrange(0, 15) == 1
+            if not u:
+                cartel = random.randrange(0, 15) == 1
+            else:
+                cartel = random.randrange(0, 25) == 1
             if cartel:
                 await inter.response.send_message(
                     "You were caught by the Mexican Cartel, and they took 20% of your supplies.")
@@ -66,7 +69,10 @@ class Drugs(commands.Cog):
                                             upgraded=u)
                 return
         supplies = random.randrange(9000, 15000)
-        cops = random.randrange(0, 15) == 1
+        if not u:
+            cops = random.randrange(0, 15) == 1
+        else:
+            cops = random.randrange(0, 25) == 1
         if cops:
             await inter.response.send_message("You were caught by the cops and gained no supplies.")
             return
