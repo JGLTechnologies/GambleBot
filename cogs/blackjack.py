@@ -301,6 +301,8 @@ class BlackJackView(disnake.ui.View):
             self.remove_item(self.stand_button)
             self.remove_item(self.hit)
             self.game = False
+            bal = round(bal + self.bet, 2)
+            await set_balance(self.guild, self.author, bal)
             embed.description = f"**You got a Blackjack. You won!**\nYour current balance: ${bal}\nBet: ${self.bet}\nGame Expires: <t:{round(self.started_at + 3600)}:R>"
             for card in self.dealer:
                 symbol, num = card.split(" ")
