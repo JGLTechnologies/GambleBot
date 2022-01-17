@@ -24,7 +24,7 @@ class Shop(commands.Cog):
                                               ephemeral=True)
             return
         if item == "security":
-            if has_security(inter.guild_id, inter.author.id):
+            if await has_security(inter.guild_id, inter.author.id):
                 await inter.response.send_message(
                     f"You already have the security plan.", ephemeral=True)
                 return
@@ -36,7 +36,7 @@ class Shop(commands.Cog):
             await inter.response.send_message(
                 f"You have successfully bought the security plan. Balance: ${bal - 100000}", ephemeral=True)
         elif item == "drugs":
-            if has_business(inter.guild_id, inter.author.id, "drugs"):
+            if await has_business(inter.guild_id, inter.author.id, "drugs"):
                 await inter.response.send_message(
                     f"You already have the drug distribution business.", ephemeral=True)
                 return
