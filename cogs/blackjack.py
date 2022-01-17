@@ -206,10 +206,14 @@ class BlackJackView(disnake.ui.View):
 
     def get_num(self, cards: list) -> int:
         num = 0
-        cards = [card.split(" ")[1] for card in cards if card.split(" ")[1] != "A"]
+        cards = [card.split(" ")[1] for card in cards if card.split(" ")[1]]
+        for i in range(cards.count("A")):
+            cards.remove("A")
         for card in cards:
             if card in ["J", "K", "Q"]:
                 num += 10
+            elif card == "A":
+                num += 11
             else:
                 num += int(card)
         return num

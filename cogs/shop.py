@@ -2,7 +2,7 @@ import time
 import aiosqlite
 import disnake
 from disnake.ext import tasks, commands
-from db import get_balance, add_security, set_balance, get_channel, remove_security, has_security
+from db import get_balance, add_security, set_balance, get_channel, remove_security, has_security, add_business
 
 
 class Shop(commands.Cog):
@@ -14,13 +14,14 @@ class Shop(commands.Cog):
     @commands.guild_only()
     async def buy_item(self, inter: disnake.ApplicationCommandInteraction, item: str = commands.Param()):
         item = item.lower()
-        items = ["security"]
+        items = ["security", "drugs"]
         bal = await get_balance(inter.guild_id, inter.author.id)
         if bal <= 0:
             await inter.response.send_message("You do not have enough money.", ephemeral=True)
             return
         if item not in items:
-            await inter.response.send_message("That item does not exist. Do `/shop` for a list of items.", ephemeral=True)
+            await inter.response.send_message("That item does not exist. Do `/shop` for a list of items.",
+                                              ephemeral=True)
             return
         if item == "security":
             if bal < 1000:
@@ -30,6 +31,14 @@ class Shop(commands.Cog):
             await set_balance(inter.guild_id, inter.author.id, bal - 100000)
             await inter.response.send_message(
                 f"You have successfully bought the security plan. Balance: ${bal - 100000}", ephemeral=True)
+        elif item == "drugs":
+            if bal < 350000:
+                await inter.response.send_message("You do not have enough money.", ephemeral=True)
+                return
+            await add_business(inter.guild_id, inter.author.id, "drugs")
+            await set_balance(inter.guild_id, inter.author.id, bal - 350000)
+            await inter.response.send_message(
+                f"You have successfully bought the drug distribution business. Balance: ${bal - 350000}", ephemeral=True)
 
     @commands.slash_command(name="unsubcribe")
     @commands.guild_only()
@@ -37,8 +46,9 @@ class Shop(commands.Cog):
         item = item.lower()
         items = ["security"]
         if item not in items:
-            await inter.response.send_message("That subscription does not exist. Do `/shop` for a list of subscriptions.",
-                                              ephemeral=True)
+            await inter.response.send_message(
+                "That subscription does not exist. Do `/shop` for a list of subscriptions.",
+                ephemeral=True)
             return
         if item == "security":
             if not await has_security(inter.guild_id, inter.author.id):
@@ -53,11 +63,13 @@ class Shop(commands.Cog):
     @commands.guild_only()
     async def shop(self, inter: disnake.ApplicationCommandInteraction):
         items = [{"name": "Security", "desc": "Lower you chances of getting robbed.", "type": "subscription",
-                  "price": "$100,000 per day"}]
+                  "price": "$100,000 per day", "usage": "`/buyitem security`"},
+                 {"name": "Drug Distribution Business", "desc": "Allows you to buy supplies to make and sell drugs.", "type": "One Time Payment",
+                  "price": "$350,000", "usage": "`/buyitem drugs`"}]
         embed = disnake.Embed(title=f"{inter.guild.name}'s Shop", color=disnake.Color.blurple())
         for item in items:
             embed.add_field(name=item["name"],
-                            value=f"Description: {item['desc']}\nType: {item['type']}\nPrice: {item['price']}",
+                            value=f"Description: {item['desc']}\nType: {item['type']}\nPrice: {item['price']}\nUsage: {item['usage']}",
                             inline=False)
         await inter.response.send_message(embed=embed)
 

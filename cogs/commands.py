@@ -129,7 +129,7 @@ class Commands(commands.Cog):
 
     @commands.slash_command(name="work")
     @commands.guild_only()
-    @commands.cooldown(1, 900, commands.BucketType.member)
+    @commands.cooldown(1, 300, commands.BucketType.member)
     async def work_command(self, inter: disnake.ApplicationCommandInteraction):
         bal = await get_balance(inter.guild_id, inter.author.id)
         if random.randrange(0, 25) == 1:
@@ -202,9 +202,9 @@ class Commands(commands.Cog):
     @commands.guild_only()
     @commands.slash_command(name="beg")
     async def beg_command(self, inter: disnake.ApplicationCommandInteraction):
-        if not await self.moving_window.test(self.get_minute_item(10),
+        if not await self.moving_window.test(self.get_minute_item(1),
                                              ["beg", str(inter.guild_id), str(inter.author.id)]):
-            reset_time, _ = await self.moving_window.get_window_stats(self.get_minute_item(10),
+            reset_time, _ = await self.moving_window.get_window_stats(self.get_minute_item(1),
                                                                       ["beg", str(inter.guild_id),
                                                                        str(inter.author.id)])
             await inter.response.send_message(

@@ -193,3 +193,106 @@ async def remove_security(guild_id: int, member_id: int) -> None:
         async with db.execute("DELETE FROM security WHERE member=? and guild=?", (member_id, guild_id)):
             pass
         await db.commit()
+
+
+async def add_business(guild_id: int, member_id: int, name: str) -> None:
+    async with aiosqlite.connect("bot.db") as db:
+        async with db.execute("""CREATE TABLE IF NOT EXISTS business(
+            member INTEGER,
+            guild INTEGER,
+            upgraded INTEGER,
+            name TEXT,
+            supplies INT,
+            product INT,
+            PRIMARY KEY (name, member, guild)
+        )"""):
+            pass
+        await db.commit()
+        async with db.execute(
+                "INSERT INTO business (guild,member,name,upgraded,supplies,product) VALUES (?,?,?,?,?,?)",
+                (guild_id, member_id, name, 0, 0, 0)):
+            pass
+        await db.commit()
+
+
+async def has_business(guild_id: int, member_id: int, name: str) -> bool:
+    async with aiosqlite.connect("bot.db") as db:
+        async with db.execute("""CREATE TABLE IF NOT EXISTS business(
+            member INTEGER,
+            guild INTEGER,
+            upgraded INTEGER,
+            name TEXT,
+            supplies INT,
+            product INT,
+            PRIMARY KEY (name, member, guild)
+        )"""):
+            pass
+        await db.commit()
+        async with db.execute(
+                "SELECT * FROM business WHERE guild=? and member=? and name=?",
+                (guild_id, member_id, name)) as cursor:
+            if await cursor.fetchone() is None:
+                return False
+            else:
+                return True
+
+
+async def upgrade_business(guild_id: int, member_id: int, name: str) -> bool:
+    async with aiosqlite.connect("bot.db") as db:
+        async with db.execute("""CREATE TABLE IF NOT EXISTS business(
+            member INTEGER,
+            guild INTEGER,
+            upgraded INTEGER,
+            name TEXT,
+            supplies INT,
+            product INT,
+            PRIMARY KEY (name, member, guild)
+        )"""):
+            pass
+        await db.commit()
+        async with db.execute(
+                "SELECT * FROM business WHERE guild=? and member=? and name=?",
+                (guild_id, member_id, name)) as cursor:
+            if await cursor.fetchone() is None:
+                return False
+            else:
+                return True
+
+
+async def get_business_stats(guild_id: int, member_id: int, name: str) -> tuple:
+    async with aiosqlite.connect("bot.db") as db:
+        async with db.execute("""CREATE TABLE IF NOT EXISTS business(
+            member INTEGER,
+            guild INTEGER,
+            upgraded INTEGER,
+            name TEXT,
+            supplies INT,
+            product INT,
+            PRIMARY KEY (name, member, guild)
+        )"""):
+            pass
+        await db.commit()
+        async with db.execute(
+                "SELECT product,supplies,upgraded FROM business WHERE guild=? and member=? and name=?",
+                (guild_id, member_id, name)) as cursor:
+            return await cursor.fetchone()
+
+
+async def update_business_stats(guild_id: int, member_id: int, name: str, product: int, supplies: int,
+                                upgraded: int) -> None:
+    async with aiosqlite.connect("bot.db") as db:
+        async with db.execute("""CREATE TABLE IF NOT EXISTS business(
+            member INTEGER,
+            guild INTEGER,
+            upgraded INTEGER,
+            name TEXT,
+            supplies INT,
+            product INT,
+            PRIMARY KEY (name, member, guild)
+        )"""):
+            pass
+        await db.commit()
+        async with db.execute(
+                "UPDATE business SET product=?,supplies=?,upgraded=? WHERE guild=? and member=? and name=?",
+                (round(product, 2), round(supplies, 2), upgraded, guild_id, member_id, name)):
+            await db.commit()
