@@ -91,13 +91,18 @@ class Drugs(commands.Cog):
                 "You must have the drug distribution business to use that command. Buy it by doing `/buyitem drugs`",
                 ephemeral=True)
             return
+        bal = await get_balance(inter.guild_id, inter.author.id)
+        if bal < 100000:
+            await inter.response.send_message("You have to have at least $100,000 to upgrade this business.", ephemeral=True)
+            return
         p, s, u = await get_business_stats(inter.guild_id, inter.author.id, "drugs")
-        if not bool(u):
-            await inter.response.send_message("You drug distribution business is already upgraded.", ephemeral=True)
+        if bool(u):
+            await inter.response.send_message("Your drug distribution business is already upgraded.", ephemeral=True)
             return
         await update_business_stats(inter.guild_id, inter.author.id, "drugs", product=p, supplies=s,
                                     upgraded=1)
-        await inter.response.send_message("You successfully upgraded your drug distribution business.")
+        await inter.response.send_message(f"You successfully upgraded your drug distribution business. You now have ${bal - 100000}")
+        await set_balance(inter.guild_id, inter.author.id, bal - 100000)
 
     @drugs.sub_command(name="info")
     async def info(self, inter: disnake.ApplicationCommandInteraction):
