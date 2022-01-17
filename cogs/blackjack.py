@@ -50,7 +50,7 @@ class Hit(disnake.ui.Button):
                 return
             card = random.choice(self.view.deck)
             self.view.deck.remove(card)
-            self.view.player.append(f"{random.choice(symbols)} A")
+            self.view.player.append(f"{random.choice(symbols)} {card}")
             dealer = 0
             player = 0
             bal = await get_balance(inter.guild_id, inter.author.id)
