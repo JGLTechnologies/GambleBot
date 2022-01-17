@@ -206,11 +206,10 @@ class Drugs(commands.Cog):
                             channel = None
                         else:
                             channel = self.bot.get_guild(guild).get_channel(channel_id)
-                        msg = f"{member.mention}, your drug distribution business was busted by the police. They took half of your supplies. Upgrade your business to prevent this in the future."
                         if channel is not None:
-                            await channel.send(msg)
+                            await channel.send(f"{member.mention}, your drug distribution business was busted by the police. They took half of your supplies. Upgrade your business to prevent this in the future.")
                         else:
-                            await member.send(msg)
+                            await member.send(f"{member.mention}, your drug distribution business on {self.bot.get_guild(guild).name} was busted by the police. They took half of your supplies. Upgrade your business to prevent this in the future.")
                 await db.commit()
 
     @cops_loop.before_loop
