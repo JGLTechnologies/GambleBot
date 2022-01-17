@@ -198,7 +198,7 @@ class Commands(commands.Cog):
         msg = ""
         for command in commands:
             msg += f"**Command Name:** {command['name']}\n**Usage:** {command['usage']}\n**Description:** {command['desc']}\n\n"
-            embed = disnake.Embed(title="Commands", color=disnake.Color.blurple(), description=msg)
+        embed = disnake.Embed(title="Commands", color=disnake.Color.blurple(), description=msg)
         await inter.response.send_message(embed=embed, ephemeral=True)
 
     @commands.guild_only()

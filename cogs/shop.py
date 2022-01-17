@@ -2,7 +2,7 @@ import time
 import aiosqlite
 import disnake
 from disnake.ext import tasks, commands
-from db import get_balance, add_security, set_balance, get_channel, remove_security, has_security, add_business
+from db import get_balance, add_security, set_balance, get_channel, remove_security, has_security, add_business, has_business
 
 
 class Shop(commands.Cog):
@@ -24,6 +24,10 @@ class Shop(commands.Cog):
                                               ephemeral=True)
             return
         if item == "security":
+            if has_security(inter.guild_id, inter.author.id):
+                await inter.response.send_message(
+                    f"You already have the security plan.", ephemeral=True)
+                return
             if bal < 1000:
                 await inter.response.send_message("You do not have enough money.", ephemeral=True)
                 return
@@ -32,6 +36,10 @@ class Shop(commands.Cog):
             await inter.response.send_message(
                 f"You have successfully bought the security plan. Balance: ${bal - 100000}", ephemeral=True)
         elif item == "drugs":
+            if has_business(inter.guild_id, inter.author.id, "drugs"):
+                await inter.response.send_message(
+                    f"You already have the drug distribution business.", ephemeral=True)
+                return
             if bal < 350000:
                 await inter.response.send_message("You do not have enough money.", ephemeral=True)
                 return
