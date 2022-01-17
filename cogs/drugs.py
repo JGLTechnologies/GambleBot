@@ -207,7 +207,7 @@ class Drugs(commands.Cog):
                                   ("drugs",)) as cursor:
                 async for entry in cursor:
                     u, supplies, member, guild, product = entry
-                    if product <= 0:
+                    if product <= 1000:
                         continue
                     if not bool(u):
                         busted = random.randrange(0, 25) == 1
@@ -215,8 +215,8 @@ class Drugs(commands.Cog):
                         continue
                     if busted:
                         async with db.execute(
-                                "UPDATE business SET product=?,supplies=?,upgraded=? WHERE guild=? and member=? and name=?",
-                                (round(product / 2, 2), round(supplies, 2), u, guild, member, "drugs")):
+                                "UPDATE business SET product=? WHERE guild=? and member=? and name=?",
+                                (round(product / 2, 2), guild, member, "drugs")):
                             pass
                         channel_id = await get_channel(guild, "info")
                         member = self.bot.get_guild(guild).get_member(member)
@@ -227,9 +227,9 @@ class Drugs(commands.Cog):
                         else:
                             channel = self.bot.get_guild(guild).get_channel(channel_id)
                         if channel is not None:
-                            await channel.send(f"{member.mention}, your drug distribution business was busted by the police. They took half of your supplies. Upgrade your business to prevent this in the future.")
+                            await channel.send(f"{member.mention}, your drug distribution business was busted by the police. They took half of your product. Upgrade your business to prevent this in the future.")
                         else:
-                            await member.send(f"{member.mention}, your drug distribution business on {self.bot.get_guild(guild).name} was busted by the police. They took half of your supplies. Upgrade your business to prevent this in the future.")
+                            await member.send(f"{member.mention}, your drug distribution business on {self.bot.get_guild(guild).name} was busted by the police. They took half of your product. Upgrade your business to prevent this in the future.")
                 await db.commit()
 
     @cops_loop.before_loop
