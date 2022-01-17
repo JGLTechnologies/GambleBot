@@ -161,6 +161,12 @@ class Commands(commands.Cog):
                   "desc": "Clears the credit card bill from a member.", "admin": True},
                  {"name": "Server Configuration", "usage": "`/config`",
                   "desc": "Shows the bot configuration for the server.", "admin": True}]
+        shop = [{"name": "Unsubscribe", "usage": "`/unsubscribe service:[text]`",
+                 "desc": "Unsubscribe from a payment plan.", "admin": False},
+                {"name": "Shop", "usage": "`/shop`",
+                 "desc": "View all of the items available for purchase on the server.", "admin": False},
+                {"name": "Buy Item", "usage": "`/buyitem item:[text]`",
+                 "desc": "Allows you to buy an item from the shop.", "admin": False}]
         economy = [{"name": "Apply For Credit", "usage": "`/credit amount:[integer]`",
                     "desc": "Get money using the credit system, you will have to pay back the amount you owe later.",
                     "admin": False}, {"name": "Work", "usage": "`/work`", "desc": "Work for money", "admin": False},
@@ -168,165 +174,159 @@ class Commands(commands.Cog):
                     "desc": "Rob someone to get a percent of their money.", "admin": False},
                    {"name": "Balance", "usage": "`/balance member:[optional member]`",
                     "desc": "Shows the balance of either you or another person.", "admin": False},
-                   {"name": "Buy Item", "usage": "`/buyitem item:[text]`",
-                    "desc": "Allows you to buy an item from the shop.", "admin": False},
                    {"name": "Beg", "usage": "`/beg`",
                     "desc": "Beg for money!", "admin": False},
                    {"name": "Invest", "usage": "`/invest amount:[integer]`",
                     "desc": "Invest in the stock market to go big or make nothing.", "admin": False},
                    {"name": "Pay", "usage": "`/pay member:[member] amount:[integer]`",
-                    "desc": "Pay another member.", "admin": False},
-                   {"name": "Unsubscribe", "usage": "`/unsubscribe service:[text]`",
-                    "desc": "Unsubscribe from a payment plan.", "admin": False},
-                   {"name": "Shop", "usage": "`/shop`",
-                    "desc": "View all of the items available for purchase on the server.", "admin": False}]
+                    "desc": "Pay another member.", "admin": False}]
         misc = [{"name": "Invite", "usage": "`/invite`",
                  "desc": "Get a link to invite GamebleBot to your server.", "admin": False},
                 {"name": "Ping", "usage": "`/ping`", "desc": "Shows the latency of the bot.", "admin": True}]
         games = [{"name": "Rock Paper Scissors Start", "usage": "`/rps start`",
-                  "desc": "Stats a game of Rock Paper Scissors for money.", "admin": False},
+                  "desc": "Starts a game of Rock Paper Scissors for money.", "admin": False},
                  {"name": "Rock Paper Scissors Cancel", "usage": "`/rps cancel`",
                   "desc": "Cancels your current Rock Paper Scissors game", "admin": False},
                  {"name": "Blackjack Start", "usage": "`/blackjack start`",
-                  "desc": "Stats a game of Blackjack for money.", "admin": False},
+                  "desc": "Starts a game of Blackjack for money.", "admin": False},
                  {"name": "Blackjack Cancel", "usage": "`/rps cancel`",
                   "desc": "Cancels your current Blackjack game", "admin": False}]
         economy_str = ""
         admin_str = ""
         misc_str = ""
         games_str = ""
+        shop_str = ""
         for command in economy:
-            economy_str += f"**Command Name:** {command['name']}\n**Usage:** {command['usage']}\n**Description:** {command['desc']}\n\n"
+            economy_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
         for command in games:
-            games_str += f"**Command Name:** {command['name']}\n**Usage:** {command['usage']}\n**Description:** {command['desc']}\n\n"
+            games_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
         for command in misc:
-            misc_str += f"**Command Name:** {command['name']}\n**Usage:** {command['usage']}\n**Description:** {command['desc']}\n\n"
+            misc_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
+        for command in shop:
+            shop_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
         embed = disnake.Embed(title="Commands", color=disnake.Color.blurple())
-        embed.add_field(name="Economy", value=economy_str, inline=False)
-        embed.add_field(name="Games", value=games_str, inline=False)
-        embed.add_field(name="Misc", value=misc_str, inline=False)
+        embed.add_field(name="**Economy**", value=economy_str, inline=False)
+        embed.add_field(name="**Games**", value=games_str, inline=False)
+        embed.add_field(name="**Shop**", value=shop_str, inline=False)
+        embed.add_field(name="**Misc**", value=misc_str, inline=False)
         if inter.guild is not None:
-            if not (inter.author.guild_permissions.administrator or inter.author.top_role.permissions.administrator):
+            if inter.author.guild_permissions.administrator or inter.author.top_role.permissions.administrator:
                 for command in admin:
-                    admin_str += f"**Command Name:** {command['name']}\n**Usage:** {command['usage']}\n**Description:** {command['desc']}\n\n"
-                embed.add_field(name="Admin", value=admin_str, inline=False)
+                    admin_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
+                embed.add_field(name="**Admin**", value=admin_str, inline=False)
         else:
-            embed.add_field(name="Admin", value=admin_str, inline=False)
+            embed.add_field(name="**Admin**", value=admin_str, inline=False)
             for command in admin:
-                admin_str += f"**Command Name:** {command['name']}\n**Usage:** {command['usage']}\n**Description:** {command['desc']}\n\n"
+                admin_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
         await inter.response.send_message(embed=embed, ephemeral=True)
 
+    @commands.guild_only()
+    @commands.slash_command(name="beg")
+    async def beg_command(self, inter: disnake.ApplicationCommandInteraction):
+        if not await self.moving_window.test(self.get_minute_item(1),
+                                             ["beg", str(inter.guild_id), str(inter.author.id)]):
+            reset_time, _ = await self.moving_window.get_window_stats(self.get_minute_item(1),
+                                                                      ["beg", str(inter.guild_id),
+                                                                       str(inter.author.id)])
+            await inter.response.send_message(
+                f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
+            return
+        bal = await get_balance(inter.guild_id, inter.author.id)
+        if bal >= 1000:
+            await inter.response.send_message("You are too rich to beg.", ephemeral=True)
+            return
+        await self.moving_window.hit(self.get_minute_item(10), ["beg", str(inter.guild_id), str(inter.author.id)])
+        if random.randrange(0, 25) == 1:
+            desc = "Congrats! Some generous rich man gave you $1000. You now have ${money}."
+            pay = 1000
+        else:
+            beg_list = [{"desc": "Some woman walking by pitied you, so she gave you ${pay}. You now have ${money}.",
+                         "pay": [10, 12, 13, 15, 17, 20]},
+                        {"desc": "An old man walked by and gave you ${pay}. You now have ${money}.",
+                         "pay": [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 40]},
+                        {"desc": "It's your lucky day! You found ${pay} on the road!. You now have ${money}.",
+                         "pay": [1, 1, 1, 1, 1, 5, 5, 5, 10, 10, 10, 20, 50, 100]},
+                        {"desc": "You made nothing during your begging session today.", "pay": [0]},
+                        {
+                            "desc": "You tried to steal a purse from an old lady! You were fined ${pay}. You now have ${money}.",
+                            "pay": [-1, -3, -5, -7, -9, -10, -15]},
+                        {
+                            "desc": "You stole a purse from an old lady! You got ${pay}. You now have ${money}.",
+                            "pay": [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 30, 30, 30, 30, 30, 50, 70, 90, 100, 150]}]
+            beg = random.choice(beg_list)
+            pay = random.choice(beg["pay"])
+            desc = beg["desc"]
+        msg = desc.format(pay=abs(pay), money=round(bal + pay, 2))
+        await inter.response.send_message(msg)
+        await set_balance(inter.guild_id, inter.author.id, bal + pay)
 
-@commands.guild_only()
-@commands.slash_command(name="beg")
-async def beg_command(self, inter: disnake.ApplicationCommandInteraction):
-    if not await self.moving_window.test(self.get_minute_item(1),
-                                         ["beg", str(inter.guild_id), str(inter.author.id)]):
-        reset_time, _ = await self.moving_window.get_window_stats(self.get_minute_item(1),
-                                                                  ["beg", str(inter.guild_id),
-                                                                   str(inter.author.id)])
-        await inter.response.send_message(
-            f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
-        return
-    bal = await get_balance(inter.guild_id, inter.author.id)
-    if bal >= 1000:
-        await inter.response.send_message("You are too rich to beg.", ephemeral=True)
-        return
-    await self.moving_window.hit(self.get_minute_item(10), ["beg", str(inter.guild_id), str(inter.author.id)])
-    if random.randrange(0, 25) == 1:
-        desc = "Congrats! Some generous rich man gave you $1000. You now have ${money}."
-        pay = 1000
-    else:
-        beg_list = [{"desc": "Some woman walking by pitied you, so she gave you ${pay}. You now have ${money}.",
-                     "pay": [10, 12, 13, 15, 17, 20]},
-                    {"desc": "An old man walked by and gave you ${pay}. You now have ${money}.",
-                     "pay": [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 40]},
-                    {"desc": "It's your lucky day! You found ${pay} on the road!. You now have ${money}.",
-                     "pay": [1, 1, 1, 1, 1, 5, 5, 5, 10, 10, 10, 20, 50, 100]},
-                    {"desc": "You made nothing during your begging session today.", "pay": [0]},
-                    {
-                        "desc": "You tried to steal a purse from an old lady! You were fined ${pay}. You now have ${money}.",
-                        "pay": [-1, -3, -5, -7, -9, -10, -15]},
-                    {
-                        "desc": "You stole a purse from an old lady! You got ${pay}. You now have ${money}.",
-                        "pay": [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 30, 30, 30, 30, 30, 50, 70, 90, 100, 150]}]
-        beg = random.choice(beg_list)
-        pay = random.choice(beg["pay"])
-        desc = beg["desc"]
-    msg = desc.format(pay=abs(pay), money=round(bal + pay, 2))
-    await inter.response.send_message(msg)
-    await set_balance(inter.guild_id, inter.author.id, bal + pay)
-
-
-@commands.guild_only()
-@commands.slash_command(name="invest")
-async def invest_command(self, inter: disnake.ApplicationCommandInteraction, amount: int = commands.Param()):
-    if not await self.moving_window.test(self.get_minute_item(1),
-                                         ["invest", str(inter.guild_id), str(inter.author.id)]):
-        reset_time, _ = await self.moving_window.get_window_stats(self.get_minute_item(1),
-                                                                  ["invest", str(inter.guild_id),
-                                                                   str(inter.author.id)])
-        await inter.response.send_message(
-            f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
-        return
-    bal = await get_balance(inter.guild_id, inter.author.id)
-    if bal < amount:
-        await inter.response.send_message("You do not have enough money.", ephemeral=True)
-        return
-    await self.moving_window.hit(self.get_minute_item(1), ["invest", str(inter.guild_id), str(inter.author.id)])
-    if random.randrange(0, 25) == 1:
-        desc = "The market spiked and you made $500. You now have ${money}."
-        percent = 500
-    else:
-        stock_list = [{
-            "desc": "There was a slight increase in the market, and you made ${pay} in return! You now have ${money}.",
-            "percent": [110, 111, 112, 113, 114, 115, 117, 120]},
-            {"desc": "The Stock Market crashed, and you lost ${pay}! You now have ${money}.",
-             "percent": [10, 20, 30, 40, 50]},
-            {
-                "desc": "There was a slight decrease in the market, and you lost ${pay}! You now have ${money}.",
-                "percent": [90, 85, 75, 92, 93, 87, 65, 70, 76]}, {
-                "desc": "There was a slight decrease in the market, and you lost ${pay}! You now have ${money}.",
-                "percent": [91, 83, 75, 92, 93, 70, 90, 80, 75]},
-            {"desc": "There was a spike in the market, and you made ${pay}! You now have ${money}.",
-             "percent": [150, 165, 175, 180, 190, 200, 220, 160, 170, 155, 300]}, {
+    @commands.guild_only()
+    @commands.slash_command(name="invest")
+    async def invest_command(self, inter: disnake.ApplicationCommandInteraction, amount: int = commands.Param()):
+        if not await self.moving_window.test(self.get_minute_item(1),
+                                             ["invest", str(inter.guild_id), str(inter.author.id)]):
+            reset_time, _ = await self.moving_window.get_window_stats(self.get_minute_item(1),
+                                                                      ["invest", str(inter.guild_id),
+                                                                       str(inter.author.id)])
+            await inter.response.send_message(
+                f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
+            return
+        bal = await get_balance(inter.guild_id, inter.author.id)
+        if bal < amount:
+            await inter.response.send_message("You do not have enough money.", ephemeral=True)
+            return
+        await self.moving_window.hit(self.get_minute_item(1), ["invest", str(inter.guild_id), str(inter.author.id)])
+        if random.randrange(0, 25) == 1:
+            desc = "The market spiked and you made $500. You now have ${money}."
+            percent = 500
+        else:
+            stock_list = [{
                 "desc": "There was a slight increase in the market, and you made ${pay} in return! You now have ${money}.",
-                "percent": [115, 141, 122, 143, 114, 135, 119, 120]}]
-        stock = random.choice(stock_list)
-        percent = random.choice(stock["percent"])
-        desc = stock["desc"]
-    msg = desc.format(pay=round(abs((percent / 100) * amount - amount), 2),
-                      money=round(bal + ((percent / 100) * amount - amount), 2))
-    await inter.response.send_message(msg)
-    await set_balance(inter.guild_id, inter.author.id, bal + ((percent / 100) * amount - amount))
+                "percent": [110, 111, 112, 113, 114, 115, 117, 120]},
+                {"desc": "The Stock Market crashed, and you lost ${pay}! You now have ${money}.",
+                 "percent": [10, 20, 30, 40, 50]},
+                {
+                    "desc": "There was a slight decrease in the market, and you lost ${pay}! You now have ${money}.",
+                    "percent": [90, 85, 75, 92, 93, 87, 65, 70, 76]}, {
+                    "desc": "There was a slight decrease in the market, and you lost ${pay}! You now have ${money}.",
+                    "percent": [91, 83, 75, 92, 93, 70, 90, 80, 75]},
+                {"desc": "There was a spike in the market, and you made ${pay}! You now have ${money}.",
+                 "percent": [150, 165, 175, 180, 190, 200, 220, 160, 170, 155, 300]}, {
+                    "desc": "There was a slight increase in the market, and you made ${pay} in return! You now have ${money}.",
+                    "percent": [115, 141, 122, 143, 114, 135, 119, 120]}]
+            stock = random.choice(stock_list)
+            percent = random.choice(stock["percent"])
+            desc = stock["desc"]
+        msg = desc.format(pay=round(abs((percent / 100) * amount - amount), 2),
+                          money=round(bal + ((percent / 100) * amount - amount), 2))
+        await inter.response.send_message(msg)
+        await set_balance(inter.guild_id, inter.author.id, bal + ((percent / 100) * amount - amount))
 
+    @commands.slash_command(name="pay")
+    @commands.guild_only()
+    async def pay_command(self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member = commands.Param(),
+                          amount: int = commands.Param()):
+        if not await self.moving_window.test(self.get_minute_item(1),
+                                             ["pay", str(inter.guild_id), str(inter.author.id)]):
+            reset_time, _ = await self.moving_window.get_window_stats(self.get_minute_item(5),
+                                                                      ["pay", str(inter.guild_id),
+                                                                       str(inter.author.id)])
+            await inter.response.send_message(
+                f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
+            return
+        bal = await get_balance(inter.guild_id, inter.author.id)
+        if amount > bal:
+            await inter.response.send_message("You do not have enough money.", ephemeral=True)
+            return
+        await self.moving_window.hit(self.get_minute_item(1), ["pay", str(inter.guild_id), str(inter.author.id)])
+        await inter.response.send_message(f"Successfully paid {str(member)} ${amount}.")
+        await set_balance(inter.guild_id, inter.author.id, bal - amount)
+        await set_balance(inter.guild_id, member.id, await get_balance(inter.guild_id, member.id) + amount)
 
-@commands.slash_command(name="pay")
-@commands.guild_only()
-async def pay_command(self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member = commands.Param(),
-                      amount: int = commands.Param()):
-    if not await self.moving_window.test(self.get_minute_item(1),
-                                         ["pay", str(inter.guild_id), str(inter.author.id)]):
-        reset_time, _ = await self.moving_window.get_window_stats(self.get_minute_item(5),
-                                                                  ["pay", str(inter.guild_id),
-                                                                   str(inter.author.id)])
+    @commands.slash_command(name="invite")
+    async def invite_command(self, inter: disnake.ApplicationCommandInteraction):
         await inter.response.send_message(
-            f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
-        return
-    bal = await get_balance(inter.guild_id, inter.author.id)
-    if amount > bal:
-        await inter.response.send_message("You do not have enough money.", ephemeral=True)
-        return
-    await self.moving_window.hit(self.get_minute_item(1), ["pay", str(inter.guild_id), str(inter.author.id)])
-    await inter.response.send_message(f"Successfully paid {str(member)} ${amount}.")
-    await set_balance(inter.guild_id, inter.author.id, bal - amount)
-    await set_balance(inter.guild_id, member.id, await get_balance(inter.guild_id, member.id) + amount)
-
-
-@commands.slash_command(name="invite")
-async def invite_command(self, inter: disnake.ApplicationCommandInteraction):
-    await inter.response.send_message(
-        f"Invite Link: [click](https://discord.com/api/oauth2/authorize?client_id=929595364821074020&permissions=8&scope=bot%20applications.commands)")
+            f"Invite Link: [click](https://discord.com/api/oauth2/authorize?client_id=929595364821074020&permissions=8&scope=bot%20applications.commands)")
 
 
 def setup(bot):
