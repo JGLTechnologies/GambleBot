@@ -143,7 +143,7 @@ class Drugs(commands.Cog):
         embed.add_field(name="Upgraded", inline=False, value=str(u))
         await inter.response.send_message(embed=embed)
 
-    @tasks.loop(minutes=2)
+    @tasks.loop(minutes=1)
     async def supplies_loop(self):
         async with aiosqlite.connect("bot.db") as db:
             async with db.execute("""CREATE TABLE IF NOT EXISTS business(
@@ -163,20 +163,27 @@ class Drugs(commands.Cog):
                     u, supplies, member, guild, product = entry
                     if supplies <= 0:
                         continue
+                    if self.bot.get_guild(guild) is None:
+                        continue
+                    if self.bot.get_guild(guild).get_member(member) is None:
+                        continue
+                    print(self.bot.get_guild(guild).get_member(member).status.online, self.bot.get_guild(guild).get_member(member).name)
+                    if not self.bot.get_guild(guild).get_member(member).status.online:
+                        continue
                     if not bool(u):
+                        if supplies < 2500:
+                            product += supplies
+                            supplies = 0
+                        else:
+                            product += 2500
+                            supplies -= 2500
+                    else:
                         if supplies < 5000:
                             product += supplies
                             supplies = 0
                         else:
                             product += 5000
                             supplies -= 5000
-                    else:
-                        if supplies < 10000:
-                            product += supplies
-                            supplies = 0
-                        else:
-                            product += 10000
-                            supplies -= 10000
                     async with db.execute(
                             "UPDATE business SET product=?,supplies=?,upgraded=? WHERE guild=? and member=? and name=?",
                             (round(product, 2), round(supplies, 2), u, guild, member, "drugs")):
@@ -201,6 +208,8 @@ class Drugs(commands.Cog):
                                   ("drugs",)) as cursor:
                 async for entry in cursor:
                     u, supplies, member, guild, product = entry
+                    if product <= 0:
+                        continue
                     if not bool(u):
                         busted = random.randrange(0, 25) == 1
                     else:
