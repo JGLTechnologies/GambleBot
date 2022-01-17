@@ -69,7 +69,7 @@ class Commands(commands.Cog):
     async def set_channel(self, inter: disnake.ApplicationCommandInteraction,
                           name: str = commands.Param(description="The channel you want to set"),
                           channel: disnake.TextChannel = commands.Param()):
-        if name.lower() not in {"bills"}:
+        if name.lower() not in {"bills", "info"}:
             await inter.response.send_message(
                 "Invalid channel name. Do `/config` to se valid channel names.",
                 ephemeral=True)
@@ -82,10 +82,12 @@ class Commands(commands.Cog):
     @commands.bot_has_permissions(administrator=True)
     async def get_config(self, inter: disnake.ApplicationCommandInteraction):
         bills = await get_channel(inter.guild_id, "bills")
+        info = await get_channel(inter.guild_id, "info")
         bills = self.bot.get_channel(bills)
+        info = self.bot.get_channel(inter)
         embed = disnake.Embed(title=f"Config For {inter.guild.name}", color=disnake.Color.blurple())
         embed.add_field(inline=False, name="Channels",
-                        value=f"Bills: {bills.mention if bills is not None else 'Not Set'}")
+                        value=f"Bills: {bills.mention if bills is not None else 'Not Set'}\nBills: {info.mention if info is not None else 'Not Set'}")
         await inter.response.send_message(embed=embed, ephemeral=True)
 
     @commands.slash_command(name="rob")

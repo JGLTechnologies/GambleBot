@@ -44,6 +44,12 @@ class Drugs(commands.Cog):
             await inter.response.send_message(
                 f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
             return
+        channel = await get_channel(inter.guild_id, "info")
+        if channel is None:
+            await inter.response.send_message(
+                "An info channel has not been set for this server. Set one by doing /setchannel info #channel",
+                ephemeral=True)
+            return
         if not await has_business(inter.guild_id, inter.author.id, "drugs"):
             await inter.response.send_message(
                 "You must have the drug distribution business to use that command. Buy it by doing `/buyitem drugs`",
@@ -77,6 +83,12 @@ class Drugs(commands.Cog):
                                                                        inter.author.id])
             await inter.response.send_message(
                 f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
+            return
+        channel = await get_channel(inter.guild_id, "info")
+        if channel is None:
+            await inter.response.send_message(
+                "An info channel has not been set for this server. Set one by doing /setchannel info #channel",
+                ephemeral=True)
             return
         if not await has_business(inter.guild_id, inter.author.id, "drugs"):
             await inter.response.send_message(
@@ -198,7 +210,7 @@ class Drugs(commands.Cog):
                                 "UPDATE business SET product=?,supplies=?,upgraded=? WHERE guild=? and member=? and name=?",
                                 (round(product / 2, 2), round(supplies, 2), u, guild, member, "drugs")):
                             pass
-                        channel_id = await get_channel(guild, "bills")
+                        channel_id = await get_channel(guild, "info")
                         member = self.bot.get_guild(guild).get_member(member)
                         if member is None:
                             continue
