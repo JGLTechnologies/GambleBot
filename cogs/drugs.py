@@ -34,9 +34,9 @@ class Drugs(commands.Cog):
 
     @drugs.sub_command(name="steal")
     async def drugs_steal(self, inter: disnake.ApplicationCommandInteraction):
-        if not await self.moving_window.test(get_minute_item(1),
+        if not await self.moving_window.test(get_minute_item(2),
                                              ["steal", inter.guild_id, inter.author.id]):
-            reset_time, _ = await self.moving_window.get_window_stats(get_minute_item(1),
+            reset_time, _ = await self.moving_window.get_window_stats(get_minute_item(2),
                                                                       ["steal", inter.guild_id,
                                                                        inter.author.id])
             await inter.response.send_message(
@@ -47,14 +47,21 @@ class Drugs(commands.Cog):
                 "You must have the drug distribution business to use that command. Buy it by doing `/buyitem drugs`",
                 ephemeral=True)
             return
-        await self.moving_window.hit(get_minute_item(1), ["steal", inter.guild_id, inter.author.id])
+        await self.moving_window.hit(get_minute_item(2), ["steal", inter.guild_id, inter.author.id])
+        p, s, u = await get_business_stats(inter.guild_id, inter.author.id, "drugs")
+        if s >= 1000:
+            cartel = random.randrange(0, 15) == 1
+            if cartel:
+                await inter.response.send_message("You were caught by the Mexican Cartel, and they took 20% of your supplies.")
+                await update_business_stats(inter.guild_id, inter.author.id, "drugs", product=p, supplies=s * .2,
+                                            upgraded=u)
+                return
         supplies = random.randrange(9000, 15000)
         cops = random.randrange(0, 15) == 1
         if cops:
             await inter.response.send_message("You were caught by the cops and gained no supplies.")
             return
         await inter.response.send_message(f"You successfully stole ${supplies} worth of supplies.")
-        p, s, u = await get_business_stats(inter.guild_id, inter.author.id, "drugs")
         await update_business_stats(inter.guild_id, inter.author.id, "drugs", product=p, supplies=s + supplies,
                                     upgraded=u)
 
