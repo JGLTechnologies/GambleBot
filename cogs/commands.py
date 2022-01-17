@@ -129,7 +129,7 @@ class Commands(commands.Cog):
 
     @commands.slash_command(name="work")
     @commands.guild_only()
-    @commands.cooldown(1, 300, commands.BucketType.member)
+    @commands.cooldown(1, 60, commands.BucketType.member)
     async def work_command(self, inter: disnake.ApplicationCommandInteraction):
         bal = await get_balance(inter.guild_id, inter.author.id)
         if random.randrange(0, 25) == 1:
@@ -145,7 +145,7 @@ class Commands(commands.Cog):
             job = random.choice(job_list)
             pay = random.choice(job["pay"])
             desc = job["desc"]
-        msg = desc.format(pay=pay, money=bal + pay)
+        msg = desc.format(pay=pay, money=round(bal + pay, 2))
         await inter.response.send_message(msg)
         await set_balance(inter.guild_id, inter.author.id, bal + pay)
 
@@ -235,7 +235,7 @@ class Commands(commands.Cog):
             beg = random.choice(beg_list)
             pay = random.choice(beg["pay"])
             desc = beg["desc"]
-        msg = desc.format(pay=abs(pay), money=bal + pay)
+        msg = desc.format(pay=abs(pay), money=round(bal + pay, 2))
         await inter.response.send_message(msg)
         await set_balance(inter.guild_id, inter.author.id, bal + pay)
 

@@ -3,24 +3,51 @@ import disnake
 from disnake.ext import commands, tasks
 import random
 from db import get_business_stats, has_business, update_business_stats, get_balance, set_balance
+from limits import RateLimitItemPerMinute
+from limits.aio.storage import MemoryStorage
+from limits.aio.strategies import MovingWindowRateLimiter
+
+from main import get_discord_date
+
+minute_items = {}
+
+
+def get_minute_item(minutes: int) -> RateLimitItemPerMinute:
+    item = minute_items.get(minutes)
+    if item is not None:
+        return item
+    item = RateLimitItemPerMinute(1, minutes)
+    minute_items[minutes] = item
+    return item
 
 
 class Drugs(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.AutoShardedInteractionBot = bot
+        self.supplies_loop.start()
+        self.storage = MemoryStorage()
+        self.moving_window = MovingWindowRateLimiter(self.storage)
 
     @commands.slash_command(name="drugs")
     async def drugs(self, inter: disnake.ApplicationCommandInteraction):
         pass
 
-    @commands.cooldown(1, 60, commands.BucketType.member)
     @drugs.sub_command(name="steal")
     async def drugs_steal(self, inter: disnake.ApplicationCommandInteraction):
+        if not await self.moving_window.test(get_minute_item(1),
+                                             ["steal", inter.guild_id, inter.author.id]):
+            reset_time, _ = await self.moving_window.get_window_stats(get_minute_item(15),
+                                                                      ["steal", inter.guild_id,
+                                                                       inter.author.id])
+            await inter.response.send_message(
+                f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
+            return
         if not await has_business(inter.guild_id, inter.author.id, "drugs"):
             await inter.response.send_message(
                 "You must have the drug distribution business to use that command. Buy it by doing `/buyitem drugs`",
                 ephemeral=True)
             return
+        await self.moving_window.hit(get_minute_item(1), ["steal", inter.guild_id, inter.author.id])
         supplies = random.randrange(9000, 15000)
         cops = random.randrange(0, 15) == 1
         if cops:
@@ -33,6 +60,14 @@ class Drugs(commands.Cog):
 
     @drugs.sub_command(name="sell")
     async def drugs_sell(self, inter: disnake.ApplicationCommandInteraction):
+        if not await self.moving_window.test(get_minute_item(20),
+                                             ["sell", inter.guild_id, inter.author.id]):
+            reset_time, _ = await self.moving_window.get_window_stats(get_minute_item(20),
+                                                                      ["sell", inter.guild_id,
+                                                                       inter.author.id])
+            await inter.response.send_message(
+                f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
+            return
         if not await has_business(inter.guild_id, inter.author.id, "drugs"):
             await inter.response.send_message(
                 "You must have the drug distribution business to use that command. Buy it by doing `/buyitem drugs`",
@@ -43,6 +78,7 @@ class Drugs(commands.Cog):
         if p <= 0:
             await inter.response.send_message("You do not have anything to sell.", ephemeral=True)
             return
+        await self.moving_window.hit(get_minute_item(20), ["sell", inter.guild_id, inter.author.id])
         await set_balance(inter.guild_id, inter.author.id, bal + p)
         await update_business_stats(inter.guild_id, inter.author.id, "drugs", product=0, supplies=s,
                                     upgraded=u)
@@ -98,12 +134,20 @@ class Drugs(commands.Cog):
                     u, supplies, member, guild, product = entry
                     if supplies <= 0:
                         continue
-                    if supplies < 5000:
-                        product += supplies
-                        supplies = 0
+                    if not bool(u):
+                        if supplies < 5000:
+                            product += supplies
+                            supplies = 0
+                        else:
+                            product += 5000
+                            supplies -= 5000
                     else:
-                        product += 5000
-                        supplies -= 5000
+                        if supplies < 10000:
+                            product += supplies
+                            supplies = 0
+                        else:
+                            product += 10000
+                            supplies -= 10000
                     async with db.execute(
                             "UPDATE business SET product=?,supplies=?,upgraded=? WHERE guild=? and member=? and name=?",
                             (round(product, 2), round(supplies, 2), u, guild, member, "drugs")):

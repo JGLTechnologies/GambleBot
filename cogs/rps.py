@@ -98,7 +98,7 @@ class ChangeBet(disnake.ui.Button):
         async with self.view.bet_lock:
             await inter.response.defer()
             bal = await get_balance(inter.guild_id, inter.author.id)
-            msg = await inter.channel.send("Please type a bet in the chat.")
+            msg = await inter.channel.send(f"{inter.author.mention}, Please type a bet in the chat.")
             try:
                 message = await self.view.bot.wait_for('message',
                                                        check=lambda message: message.author.id == inter.author.id,
@@ -191,7 +191,7 @@ class RPS(commands.Cog):
                 except disnake.NotFound:
                     del rps_games[inter.guild_id][inter.author.id]
         await inter.response.defer(ephemeral=True)
-        msg = await inter.channel.send("Please type a bet in the chat.")
+        msg = await inter.channel.send(f"{inter.author.mention}, Please type a bet in the chat.")
         try:
             message = await self.bot.wait_for('message',
                                               check=lambda message: message.author.id == inter.author.id,
