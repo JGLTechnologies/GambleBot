@@ -153,6 +153,16 @@ class Commands(commands.Cog):
 
     @commands.slash_command(name="commands")
     async def help_command(self, inter: disnake.ApplicationCommandInteraction):
+        business = [{"name": "Steal Drugs", "usage": "`/drugs steal`",
+                     "desc": "Steal supplies to make drugs.", "admin": False},
+                    {"name": "Sell Drugs", "usage": "`/drugs sell`",
+                     "desc": "Sells all of the drugs in your inventory.", "admin": False},
+                    {"name": "Upgrade Drug Distribution Business", "usage": "`/drugs upgrade`",
+                     "desc": "Raises your business's production speed and lowers chances of being caught by the cops.",
+                     "admin": False}, {"name": "Drug Info", "usage": "`/drugs info`",
+                                       "desc": "Displays info for your drug distribution business.",
+                                       "admin": False}
+                    ]
         admin = [{"name": "Account Info", "usage": "`/accinfo member:[optional member]`",
                   "desc": "Shows information for an account.", "admin": False},
                  {"name": "Set Channel", "usage": "`/setchannel name:[channel]`",
@@ -192,12 +202,15 @@ class Commands(commands.Cog):
                  {"name": "Blackjack Cancel", "usage": "`/rps cancel`",
                   "desc": "Cancels your current Blackjack game", "admin": False}]
         economy_str = ""
+        business_str = ""
         admin_str = ""
         misc_str = ""
         games_str = ""
         shop_str = ""
         for command in economy:
             economy_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
+        for command in business:
+            business_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
         for command in games:
             games_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
         for command in misc:
@@ -206,6 +219,7 @@ class Commands(commands.Cog):
             shop_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
         embed = disnake.Embed(title="Commands", color=disnake.Color.blurple())
         embed.add_field(name="**Economy**", value=economy_str, inline=False)
+        embed.add_field(name="**Businesses**", value=business_str, inline=False)
         embed.add_field(name="**Games**", value=games_str, inline=False)
         embed.add_field(name="**Shop**", value=shop_str, inline=False)
         embed.add_field(name="**Misc**", value=misc_str, inline=False)

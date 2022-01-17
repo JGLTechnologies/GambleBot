@@ -202,7 +202,7 @@ class Drugs(commands.Cog):
                 async for entry in cursor:
                     u, supplies, member, guild, product = entry
                     if not bool(u):
-                        busted = random.randrange(0, 50) == 1
+                        busted = random.randrange(0, 25) == 1
                     else:
                         continue
                     if busted:
