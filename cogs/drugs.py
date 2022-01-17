@@ -36,7 +36,7 @@ class Drugs(commands.Cog):
     async def drugs_steal(self, inter: disnake.ApplicationCommandInteraction):
         if not await self.moving_window.test(get_minute_item(1),
                                              ["steal", inter.guild_id, inter.author.id]):
-            reset_time, _ = await self.moving_window.get_window_stats(get_minute_item(15),
+            reset_time, _ = await self.moving_window.get_window_stats(get_minute_item(1),
                                                                       ["steal", inter.guild_id,
                                                                        inter.author.id])
             await inter.response.send_message(
