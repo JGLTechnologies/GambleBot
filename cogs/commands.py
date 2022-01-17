@@ -158,7 +158,7 @@ class Commands(commands.Cog):
                     {"name": "Sell Drugs", "usage": "`/drugs sell`",
                      "desc": "Sells all of the drugs in your inventory.", "admin": False},
                     {"name": "Upgrade Drug Distribution Business", "usage": "`/drugs upgrade`",
-                     "desc": "Raises your business's production speed and lowers chances of being caught by the cops. Costs $100,000.",
+                     "desc": "Raises your business's production speed and lowers chances of being caught by the cops. Costs $200,000.",
                      "admin": False}, {"name": "Drug Info", "usage": "`/drugs info`",
                                        "desc": "Displays info for your drug distribution business.",
                                        "admin": False}
