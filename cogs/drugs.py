@@ -55,7 +55,7 @@ class Drugs(commands.Cog):
                 "You must have the drug distribution business to use that command. Buy it by doing `/buyitem drugs`",
                 ephemeral=True)
             return
-        await self.moving_window.hit(get_minute_item(2), ["steal", inter.guild_id, inter.author.id])
+        await self.moving_window.hit(get_minute_item(5), ["steal", inter.guild_id, inter.author.id])
         p, s, u = await get_business_stats(inter.guild_id, inter.author.id, "drugs")
         if s >= 1000:
             if not u:
