@@ -191,7 +191,7 @@ class Commands(commands.Cog):
                    {"name": "Pay", "usage": "`/pay member:[member] amount:[integer]`",
                     "desc": "Pay another member.", "admin": False}]
         misc = [{"name": "Invite", "usage": "`/invite`",
-                 "desc": "Get a link to invite GamebleBot to your server.", "admin": False},
+                 "desc": "Get a link to invite GambleBot to your server.", "admin": False},
                 {"name": "Ping", "usage": "`/ping`", "desc": "Shows the latency of the bot.", "admin": True}]
         games = [{"name": "Rock Paper Scissors Start", "usage": "`/rps start`",
                   "desc": "Starts a game of Rock Paper Scissors for money.", "admin": False},
@@ -199,7 +199,7 @@ class Commands(commands.Cog):
                   "desc": "Cancels your current Rock Paper Scissors game", "admin": False},
                  {"name": "Blackjack Start", "usage": "`/blackjack start`",
                   "desc": "Starts a game of Blackjack for money.", "admin": False},
-                 {"name": "Blackjack Cancel", "usage": "`/rps cancel`",
+                 {"name": "Blackjack Cancel", "usage": "`/blackjack cancel`",
                   "desc": "Cancels your current Blackjack game", "admin": False}]
         economy_str = ""
         business_str = ""
