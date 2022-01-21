@@ -9,7 +9,6 @@ from collections import defaultdict
 
 blackjack_games = defaultdict(lambda: {})
 symbols = ["♣", "❤", "♠", "♦"]
-second_items = {}
 
 
 class PlayAgain(disnake.ui.Button):
