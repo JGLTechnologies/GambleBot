@@ -228,14 +228,16 @@ class Drugs(commands.Cog):
                         member = self.bot.get_guild(guild).get_member(member)
                         if member is None:
                             continue
-                        if channel_id is None:
-                            channel = None
-                        else:
-                            channel = self.bot.get_guild(guild).get_channel(channel_id)
+                        channel = self.bot.get_guild(guild).get_channel(channel_id)
                         if channel is not None:
-                            await channel.send(f"{member.mention}, your drug distribution business was busted by the police. They took half of your product. Upgrade your business to prevent this in the future.")
+                            await channel.send(
+                                f"{member.mention}, your drug distribution business was busted by the police. They took half of your product. Upgrade your business to prevent this in the future.")
                         else:
-                            await member.send(f"{member.mention}, your drug distribution business on {self.bot.get_guild(guild).name} was busted by the police. They took half of your product. Upgrade your business to prevent this in the future.")
+                            try:
+                                await member.send(
+                                    f"{member.mention}, your drug distribution business on {self.bot.get_guild(guild).name} was busted by the police. They took half of your product. Upgrade your business to prevent this in the future.")
+                            except Exception:
+                                pass
                 await db.commit()
 
     @cops_loop.before_loop

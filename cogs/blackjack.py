@@ -105,7 +105,7 @@ class Hit(disnake.ui.Button):
             if player > 21:
                 bal = round(bal - self.view.bet, 2)
                 await set_balance(inter.guild_id, inter.author.id, bal)
-                embed.description = f"**You Busted!**\nYour current balance: ${bal}\nBet: ${self.view.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>"
+                embed.description = f"**You Busted!**\nYour current balance: ${bal}\nBet: ${self.view.bet}"
                 self.view.add_item(self.view.play_again)
                 self.view.add_item(self.view.change_bet)
                 self.view.game = False
@@ -124,7 +124,7 @@ class Hit(disnake.ui.Button):
                 await self.view.stand(inter)
                 return
             else:
-                embed.description = f"Your current balance: ${bal}\nBet: ${self.view.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>"
+                embed.description = f"Your current balance: ${bal}\nBet: ${self.view.bet}"
             embed.add_field(inline=False, name=f"Dealer's Hand ({dealer})", value=dealer_string)
             embed.add_field(inline=False, name=f"{str(inter.author)}'s Hand ({player})", value=player_string)
             await inter.response.edit_message(embed=embed, view=self.view)
@@ -169,7 +169,7 @@ class ChangeBet(disnake.ui.Button):
                 return
             self.view.bet = bet
             embed = disnake.Embed(
-                description=f"Your current balance: ${bal}\nBet: ${self.view.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
+                description=f"Your current balance: ${bal}\nBet: ${self.view.bet}",
                 title=f"{str(inter.author)}'s Blackjack Game", color=disnake.Color.blurple())
             try:
                 await inter.message.edit(embed=embed)
@@ -183,13 +183,12 @@ class ChangeBet(disnake.ui.Button):
 
 class BlackJackView(disnake.ui.View):
     def __init__(self, bet: int, author: int, guild: int, channel: int, bot: commands.AutoShardedInteractionBot):
-        super().__init__(timeout=3600)
+        super().__init__(timeout=None)
         self.author = author
         self.bot = bot
         self.channel = channel
         self.guild = guild
         self.bet = bet
-        self.started_at = time.time()
         self.play_again = PlayAgain(label="Play Again", style=disnake.ButtonStyle.blurple)
         self.change_bet = ChangeBet(label="Change Bet", style=disnake.ButtonStyle.red)
         self.hit = Hit(label="Hit", style=disnake.ButtonStyle.green)
@@ -205,23 +204,6 @@ class BlackJackView(disnake.ui.View):
 
     def generate_deck(self):
         self.deck = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "K", "Q", "J"] * 24
-
-    async def on_timeout(self) -> None:
-        try:
-            msg = await self.bot.get_channel(self.channel).fetch_message(blackjack_games[self.guild][self.author][0])
-            await msg.delete()
-        except Exception:
-            pass
-        try:
-            del blackjack_games[self.guild][self.author]
-        except KeyError:
-            pass
-        try:
-            await self.bot.get_channel(self.channel).send(
-                f"{self.bot.get_guild(self.guild).get_member(self.author).mention}, your Blackjack game has expired. "
-                "Start a new one by doing `/blackjack start`")
-        except Exception:
-            pass
 
     def get_num(self, cards: list) -> int:
         num = 0
@@ -270,7 +252,7 @@ class BlackJackView(disnake.ui.View):
             self.bet = bal
         embed = disnake.Embed(color=disnake.Color.blurple(),
                               title=f"{str(member)}'s Blackjack Game",
-                              description=f"Your current balance: ${bal}\nBet: ${self.bet}\nGame Expires: <t:{round(self.started_at + 3600)}:R>")
+                              description=f"Your current balance: ${bal}\nBet: ${self.bet}")
         for card in self.dealer:
             _, num = card.split(" ")
             if num == "A":
@@ -313,7 +295,7 @@ class BlackJackView(disnake.ui.View):
             self.game = False
             bal = round(bal - self.bet, 2)
             await set_balance(self.guild, self.author, bal)
-            embed.description = f"**The dealer got a Blackjack. You lost!**\nYour current balance: ${bal}\nBet: ${self.bet}\nGame Expires: <t:{round(self.started_at + 3600)}:R>"
+            embed.description = f"**The dealer got a Blackjack. You lost!**\nYour current balance: ${bal}\nBet: ${self.bet}"
             for card in self.dealer:
                 symbol, num = card.split(" ")
                 dealer_string += f"[{symbol} {num}] "
@@ -323,7 +305,7 @@ class BlackJackView(disnake.ui.View):
             self.remove_item(self.stand_button)
             self.remove_item(self.hit)
             self.game = False
-            embed.description = f"**It's a push!**\nYour current balance: ${bal}\nBet: ${self.bet}\nGame Expires: <t:{round(self.started_at + 3600)}:R>"
+            embed.description = f"**It's a push!**\nYour current balance: ${bal}\nBet: ${self.bet}"
             for card in self.dealer:
                 symbol, num = card.split(" ")
                 dealer_string += f"[{symbol} {num}] "
@@ -335,7 +317,7 @@ class BlackJackView(disnake.ui.View):
             self.game = False
             bal = round(bal + self.bet, 2)
             await set_balance(self.guild, self.author, bal)
-            embed.description = f"**You got a Blackjack. You won!**\nYour current balance: ${bal}\nBet: ${self.bet}\nGame Expires: <t:{round(self.started_at + 3600)}:R>"
+            embed.description = f"**You got a Blackjack. You won!**\nYour current balance: ${bal}\nBet: ${self.bet}"
             for card in self.dealer:
                 symbol, num = card.split(" ")
                 dealer_string += f"[{symbol} {num}] "
@@ -420,7 +402,7 @@ class BlackJackView(disnake.ui.View):
             symbol, num = card.split(" ")
             player_string += f"[{symbol} {num}] "
         embed = disnake.Embed(
-            description=f"Your current balance: ${bal}\nBet: ${self.bet}\nGame Expires: <t:{round(self.started_at + 3600)}:R>",
+            description=f"Your current balance: ${bal}\nBet: ${self.bet}",
             color=disnake.Color.blurple(), title=f"{str(inter.author)}'s Blackjack Game")
         while dealer < 17:
             await asyncio.sleep(1)
@@ -474,7 +456,7 @@ class BlackJackView(disnake.ui.View):
             self.remove_item(self.stand_button)
             self.remove_item(self.hit)
             self.game = False
-            embed.description = f"**It's a push!**\nYour current balance: ${bal}\nBet: ${self.bet}\nGame Expires: <t:{round(self.started_at + 3600)}:R>"
+            embed.description = f"**It's a push!**\nYour current balance: ${bal}\nBet: ${self.bet}"
         elif dealer > 21:
             bal = round(bal + self.bet, 2)
             await set_balance(inter.guild_id, inter.author.id, bal)
@@ -483,7 +465,7 @@ class BlackJackView(disnake.ui.View):
             self.remove_item(self.stand_button)
             self.remove_item(self.hit)
             self.game = False
-            embed.description = f"**The dealer busted. You won!**\nYour current balance: ${bal}\nBet: ${self.bet}\nGame Expires: <t:{round(self.started_at + 3600)}:R>"
+            embed.description = f"**The dealer busted. You won!**\nYour current balance: ${bal}\nBet: ${self.bet}"
         elif dealer > player:
             bal = round(bal - self.bet, 2)
             await set_balance(inter.guild_id, inter.author.id, bal)
@@ -492,7 +474,7 @@ class BlackJackView(disnake.ui.View):
             self.remove_item(self.stand_button)
             self.remove_item(self.hit)
             self.game = False
-            embed.description = f"**You lost!**\nYour current balance: ${bal}\nBet: ${self.bet}\nGame Expires: <t:{round(self.started_at + 3600)}:R>"
+            embed.description = f"**You lost!**\nYour current balance: ${bal}\nBet: ${self.bet}"
             if bal <= 0:
                 await inter.channel.send(f"{inter.author.mention}, you are out of money.", delete_after=7)
                 try:
@@ -510,7 +492,7 @@ class BlackJackView(disnake.ui.View):
             self.remove_item(self.stand_button)
             self.remove_item(self.hit)
             self.game = False
-            embed.description = f"**You won!**\nYour current balance: ${bal}\nBet: ${self.bet}\nGame Expires: <t:{round(self.started_at + 3600)}:R>"
+            embed.description = f"**You won!**\nYour current balance: ${bal}\nBet: ${self.bet}"
         try:
             await inter.message.edit(embed=embed, view=self)
         except:
@@ -576,7 +558,7 @@ class BlackJack(commands.Cog):
         view = BlackJackView(bet=bet, author=inter.author.id, guild=inter.guild_id,
                              channel=inter.channel_id, bot=self.bot)
         embed = disnake.Embed(
-            description=f"Your current balance: ${await get_balance(inter.guild_id, inter.author.id)}\nBet: ${bet}\nGame Expires: <t:{round(view.started_at + 3600)}:R>",
+            description=f"Your current balance: ${await get_balance(inter.guild_id, inter.author.id)}\nBet: ${bet}",
             title=f"{str(inter.author)}'s Blackjack Game", color=disnake.Color.blurple())
         message = await inter.channel.send(embed=embed,
                                            view=view)

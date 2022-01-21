@@ -2,7 +2,8 @@ import time
 import aiosqlite
 import disnake
 from disnake.ext import tasks, commands
-from db import get_balance, add_security, set_balance, get_channel, remove_security, has_security, add_business, has_business
+from db import get_balance, add_security, set_balance, get_channel, remove_security, has_security, add_business, \
+    has_business
 
 
 class Shop(commands.Cog):
@@ -46,7 +47,8 @@ class Shop(commands.Cog):
             await add_business(inter.guild_id, inter.author.id, "drugs")
             await set_balance(inter.guild_id, inter.author.id, bal - 350000)
             await inter.response.send_message(
-                f"You have successfully bought the drug distribution business. Balance: ${bal - 350000}", ephemeral=True)
+                f"You have successfully bought the drug distribution business. Balance: ${bal - 350000}",
+                ephemeral=True)
 
     @commands.slash_command(name="unsubcribe")
     @commands.guild_only()
@@ -72,7 +74,8 @@ class Shop(commands.Cog):
     async def shop(self, inter: disnake.ApplicationCommandInteraction):
         items = [{"name": "Security", "desc": "Lower you chances of getting robbed.", "type": "subscription",
                   "price": "$100,000 per day", "usage": "`/buyitem security`"},
-                 {"name": "Drug Distribution Business", "desc": "Allows you to buy supplies to make and sell drugs.", "type": "One Time Payment",
+                 {"name": "Drug Distribution Business", "desc": "Allows you to buy supplies to make and sell drugs.",
+                  "type": "One Time Payment",
                   "price": "$350,000", "usage": "`/buyitem drugs`"}]
         embed = disnake.Embed(title=f"{inter.guild.name}'s Shop", color=disnake.Color.blurple())
         for item in items:
@@ -98,11 +101,19 @@ class Shop(commands.Cog):
                     if last_paid <= time.time() - (24 * 3600):
                         bal = await get_balance(guild_id, member_id)
                         guild = self.bot.get_guild(guild_id)
+                        if guild is None:
+                            continue
                         channel = guild.get_channel(await get_channel(guild_id, "bills"))
                         if bal - 100000 < 0:
                             if channel is not None:
                                 await channel.send(
                                     f"{guild.get_member(member_id).mention}, you do not have enough money to pay for security, so your subscription has been canceled.")
+                            else:
+                                try:
+                                    await guild.get_member(member_id).send(
+                                        f"{guild.get_member(member_id).mention}, you do not have enough money to pay for security on {guild.name}, so your subscription has been canceled.")
+                                except Exception:
+                                    continue
                             await remove_security(guild_id, member_id)
                         else:
                             await set_balance(guild_id, member_id, bal - 100000)

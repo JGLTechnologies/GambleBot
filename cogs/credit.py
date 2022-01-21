@@ -66,8 +66,10 @@ class Credit(commands.Cog):
     async def credit_apply(self, inter: disnake.ApplicationCommandInteraction,
                            amount: int = commands.Param(description="The amount of credit you want")):
         if not await self.moving_window.test(self.item, [str(inter.author.id), str(inter.guild_id)]):
-            reset_time, _ = await self.moving_window.get_window_stats(self.item, [str(inter.author.id), str(inter.guild_id)])
-            await inter.response.send_message(f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
+            reset_time, _ = await self.moving_window.get_window_stats(self.item,
+                                                                      [str(inter.author.id), str(inter.guild_id)])
+            await inter.response.send_message(
+                f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
             return
         channel = await get_channel(inter.guild_id, "bills")
         if channel is None:
@@ -149,8 +151,6 @@ class Credit(commands.Cog):
                     id, guild, member, amount, due_date, message = entry
                     if time.time() >= due_date:
                         channel = await get_channel(guild, "bills")
-                        if channel is None:
-                            continue
                         async with db.execute("DELETE FROM credit WHERE id=?", (id,)):
                             pass
                         await db.commit()
@@ -165,10 +165,16 @@ class Credit(commands.Cog):
                         except disnake.NotFound:
                             continue
                         member = guild.get_member(member)
-                        if member is not None:
+                        if channel is not None:
                             await channel.send(
-                                f"{member.mention}, you have failed to pay your bill on time. You have been charged ${amount * 2}")
+                                f"{member.mention}, you have failed to pay your credit bill on time. You have been charged ${amount * 2}")
                             await set_balance(guild.id, member.id, (await get_balance(guild.id, member.id)) - 1)
+                        else:
+                            try:
+                                await member.send(
+                                    f"{member.mention}, you have failed to pay your credit bill on {guild.name} on time. You have been charged ${amount * 2}")
+                            except Exception:
+                                pass
 
     @check_bills.before_loop
     async def before_bills_check(self):

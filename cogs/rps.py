@@ -49,24 +49,24 @@ class RPSMenu(disnake.ui.Select):
         computer_choice = random.choice(["rock", "paper", "scissors"])
         if player_choice == computer_choice:
             embed = disnake.Embed(
-                description=f"**It's a tie!**\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
+                description=f"**It's a tie!**\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
         elif player_choice == "rock" and computer_choice == "scissors":
             bal += self.bet
             embed = disnake.Embed(
-                description=f"**You won!**\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
+                description=f"**You won!**\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             await set_balance(inter.guild_id, inter.author.id, bal)
         elif player_choice == "paper" and computer_choice == "rock":
             bal += self.bet
             embed = disnake.Embed(
-                description=f"**You won!**\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
+                description=f"**You won!**\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             await set_balance(inter.guild_id, inter.author.id, bal)
         elif player_choice == "scissors" and computer_choice == "paper":
             bal += self.bet
             embed = disnake.Embed(
-                description=f"**You won!**\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
+                description=f"**You won!**\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             await set_balance(inter.guild_id, inter.author.id, bal)
         else:
@@ -83,7 +83,7 @@ class RPSMenu(disnake.ui.Select):
                 await set_balance(inter.guild_id, inter.author.id, bal)
                 return
             embed = disnake.Embed(
-                description=f"**You lost!**\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
+                description=f"**You lost!**\nYour current balance: ${round(bal, 2)}\nBet: ${round(self.bet, 2)}",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             await set_balance(inter.guild_id, inter.author.id, bal)
         await inter.response.edit_message(embed=embed)
@@ -125,7 +125,7 @@ class ChangeBet(disnake.ui.Button):
                 return
             self.view.rps.bet = bet
             embed = disnake.Embed(
-                description=f"Your current balance: ${bal}\nBet: ${self.view.rps.bet}\nGame Expires: <t:{round(self.view.started_at + 3600)}:R>",
+                description=f"Your current balance: ${bal}\nBet: ${self.view.rps.bet}",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             try:
                 await inter.message.edit(embed=embed)
@@ -139,7 +139,7 @@ class ChangeBet(disnake.ui.Button):
 
 class RPSView(disnake.ui.View):
     def __init__(self, bet: int, author: int, guild: int, channel: int, bot: commands.AutoShardedInteractionBot):
-        super().__init__(timeout=3600)
+        super().__init__(timeout=None)
         self.bot = bot
         self.author = author
         self.channel = channel
@@ -149,22 +149,6 @@ class RPSView(disnake.ui.View):
         self.add_item(self.change_bet)
         self.add_item(self.rps)
         self.bet_lock = asyncio.Semaphore(1)
-
-    async def on_timeout(self) -> None:
-        try:
-            msg = await self.bot.get_channel(self.channel).fetch_message(rps_games[self.guild][self.author][0])
-            await msg.delete()
-        except Exception:
-            pass
-        try:
-            del rps_games[self.guild][self.author]
-        except KeyError:
-            pass
-        try:
-            await self.bot.get_channel(self.channel).send(
-                f"{self.bot.get_guild(self.guild).get_member(self.author).mention}, your Rock Paper Scissors game has expired. Start a new one by doing `/rps start`")
-        except Exception:
-            pass
 
 
 class RPS(commands.Cog):
@@ -221,9 +205,8 @@ class RPS(commands.Cog):
             return
         view = RPSView(bet=bet, author=inter.author.id, guild=inter.guild_id,
                        channel=inter.channel_id, bot=self.bot)
-        view.started_at = time.time()
         embed = disnake.Embed(
-            description=f"Your current balance: ${await get_balance(inter.guild_id, inter.author.id)}\nBet: ${bet}\nGame Expires: <t:{round(view.started_at + 3600)}:R>",
+            description=f"Your current balance: ${await get_balance(inter.guild_id, inter.author.id)}\nBet: ${bet}",
             title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
         message = await inter.channel.send(inter.author.mention, embed=embed,
                                            view=view)
