@@ -40,6 +40,8 @@ class Hit(disnake.ui.Button):
     async def callback(self, inter: disnake.MessageInteraction):
         if inter.author.id != self.view.author:
             return
+        if len(self.view.deck) < 1:
+            self.view.generate_deck()
         dealer_ace = False
         player_ace = False
         if self.view.hit_lock.locked():
@@ -202,7 +204,7 @@ class BlackJackView(disnake.ui.View):
         self.bet_lock = asyncio.Semaphore(1)
 
     def generate_deck(self):
-        self.deck = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "K", "Q", "J"] * 24
+        self.deck = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "K", "Q", "J"] * 4
 
     def get_num(self, cards: list) -> int:
         num = 0
@@ -230,7 +232,7 @@ class BlackJackView(disnake.ui.View):
         self.remove_item(self.play_again)
         self.remove_item(self.change_bet)
         member = self.bot.get_guild(self.guild).get_member(self.author)
-        if len(self.deck) < 52:
+        if len(self.deck) < 4:
             self.generate_deck()
         dealer_card_1 = random.choice(self.deck)
         dealer_card_2 = random.choice(self.deck)
@@ -404,6 +406,8 @@ class BlackJackView(disnake.ui.View):
             description=f"Your current balance: ${bal}\nBet: ${self.bet}",
             color=disnake.Color.blurple(), title=f"{str(inter.author)}'s Blackjack Game")
         while dealer < 17:
+            if len(self.deck) < 1:
+                self.generate_deck()
             await asyncio.sleep(1)
             dealer = 0
             dealer_string = ""
