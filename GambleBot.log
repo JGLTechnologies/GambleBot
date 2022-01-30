@@ -18,3 +18,10 @@ Traceback (most recent call last):
   File "C:\Users\fixin\PycharmProjects\GambleBot\cogs\drugs.py", line 170, in supplies_loop
     print(self.bot.get_guild(guild).get_member(member).status.offline)
 AttributeError: '_EnumValueBase_Status' object has no attribute 'offline'
+[01-27-2022 05:52:27 AM] ERROR: Attempting a reconnect for shard ID 0 in 1.14s
+Traceback (most recent call last):
+  File "C:\Users\fixin\PycharmProjects\GambleBot\venv\lib\site-packages\disnake\shard.py", line 174, in worker
+    await self.ws.poll_event()
+  File "C:\Users\fixin\PycharmProjects\GambleBot\venv\lib\site-packages\disnake\gateway.py", line 616, in poll_event
+    raise ConnectionClosed(self.socket, shard_id=self.shard_id, code=code) from None
+disnake.errors.ConnectionClosed: Shard ID 0 WebSocket closed with 1000

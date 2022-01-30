@@ -2,4 +2,4 @@ disnake
 aiosqlite
 pytz
 limits
-async-timeout
+python-dotenv
