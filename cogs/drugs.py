@@ -8,7 +8,7 @@ from limits.aio.storage import MemoryStorage
 from limits.aio.strategies import MovingWindowRateLimiter
 from db import get_channel
 
-from main import get_discord_date
+from main import get_discord_date, int_to_money
 
 minute_items = {}
 
@@ -130,8 +130,9 @@ class Drugs(commands.Cog):
             return
         await update_business_stats(inter.guild_id, inter.author.id, "drugs", product=p, supplies=s,
                                     upgraded=1)
+        bal -= 200000
         await inter.response.send_message(
-            f"You successfully upgraded your drug distribution business. You now have ${bal - 200000}")
+            f"You successfully upgraded your drug distribution business. You now have {int_to_money(bal)}")
         await set_balance(inter.guild_id, inter.author.id, bal - 200000)
 
     @drugs.sub_command(name="info")

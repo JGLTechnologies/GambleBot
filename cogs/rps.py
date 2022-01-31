@@ -1,7 +1,7 @@
 import random
-import time
 from db import set_balance, get_balance
 import disnake
+from main import int_to_money
 from disnake.ext import commands
 from collections import defaultdict
 import asyncio
@@ -125,7 +125,7 @@ class ChangeBet(disnake.ui.Button):
                 return
             self.view.rps.bet = bet
             embed = disnake.Embed(
-                description=f"Your current balance: ${bal}\nBet: ${self.view.rps.bet}",
+                description=f"Your current balance: {int_to_money(bal)}\nBet: ${self.view.rps.bet}",
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             try:
                 await inter.message.edit(embed=embed)
