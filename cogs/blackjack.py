@@ -106,7 +106,7 @@ class Hit(disnake.ui.Button):
             if player > 21:
                 bal = round(bal - self.view.bet, 2)
                 await set_balance(inter.guild_id, inter.author.id, bal)
-                embed.description = f"**You Busted!**\nYour current balance: {int_to_money(bal)}\nBet: ${self.view.bet}"
+                embed.description = f"**You Busted!**\nYour current balance: {int_to_money(bal)}\nBet: {int_to_money(self.view.bet)}"
                 self.view.add_item(self.view.play_again)
                 self.view.add_item(self.view.change_bet)
                 self.view.game = False
@@ -125,7 +125,7 @@ class Hit(disnake.ui.Button):
                 await self.view.stand(inter)
                 return
             else:
-                embed.description = f"Your current balance: {int_to_money(bal)}\nBet: ${self.view.bet}"
+                embed.description = f"Your current balance: {int_to_money(bal)}\nBet: {int_to_money(self.view.bet)}"
             embed.add_field(inline=False, name=f"Dealer's Hand ({dealer})", value=dealer_string)
             embed.add_field(inline=False, name=f"{str(inter.author)}'s Hand ({player})", value=player_string)
             await inter.response.edit_message(embed=embed, view=self.view)
@@ -170,7 +170,7 @@ class ChangeBet(disnake.ui.Button):
                 return
             self.view.bet = bet
             embed = disnake.Embed(
-                description=f"Your current balance: {int_to_money(bal)}\nBet: ${self.view.bet}",
+                description=f"Your current balance: {int_to_money(bal)}\nBet: {int_to_money(self.view.bet)}",
                 title=f"{str(inter.author)}'s Blackjack Game", color=disnake.Color.blurple())
             try:
                 await inter.message.edit(embed=embed)
@@ -561,7 +561,7 @@ class BlackJack(commands.Cog):
         view = BlackJackView(bet=bet, author=inter.author.id, guild=inter.guild_id,
                              channel=inter.channel_id, bot=self.bot)
         embed = disnake.Embed(
-            description=f"Your current balance: ${await get_balance(inter.guild_id, inter.author.id)}\nBet: ${bet}",
+            description=f"Your current balance: ${await get_balance(inter.guild_id, inter.author.id)}\nBet: {int_to_money(bet)}",
             title=f"{str(inter.author)}'s Blackjack Game", color=disnake.Color.blurple())
         message = await inter.channel.send(embed=embed,
                                            view=view)
