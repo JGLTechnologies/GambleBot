@@ -1,8 +1,8 @@
 import asyncio
 import random
-import time
 import typing
 from db import set_balance, get_balance
+from main import int_to_money
 import disnake
 from disnake.ext import commands
 from collections import defaultdict
@@ -106,7 +106,7 @@ class Hit(disnake.ui.Button):
             if player > 21:
                 bal = round(bal - self.view.bet, 2)
                 await set_balance(inter.guild_id, inter.author.id, bal)
-                embed.description = f"**You Busted!**\nYour current balance: ${bal}\nBet: ${self.view.bet}"
+                embed.description = f"**You Busted!**\nYour current balance: {int_to_money(bal)}\nBet: ${self.view.bet}"
                 self.view.add_item(self.view.play_again)
                 self.view.add_item(self.view.change_bet)
                 self.view.game = False
@@ -125,7 +125,7 @@ class Hit(disnake.ui.Button):
                 await self.view.stand(inter)
                 return
             else:
-                embed.description = f"Your current balance: ${bal}\nBet: ${self.view.bet}"
+                embed.description = f"Your current balance: {int_to_money(bal)}\nBet: ${self.view.bet}"
             embed.add_field(inline=False, name=f"Dealer's Hand ({dealer})", value=dealer_string)
             embed.add_field(inline=False, name=f"{str(inter.author)}'s Hand ({player})", value=player_string)
             await inter.response.edit_message(embed=embed, view=self.view)
@@ -170,7 +170,7 @@ class ChangeBet(disnake.ui.Button):
                 return
             self.view.bet = bet
             embed = disnake.Embed(
-                description=f"Your current balance: ${bal}\nBet: ${self.view.bet}",
+                description=f"Your current balance: {int_to_money(bal)}\nBet: ${self.view.bet}",
                 title=f"{str(inter.author)}'s Blackjack Game", color=disnake.Color.blurple())
             try:
                 await inter.message.edit(embed=embed)
@@ -253,7 +253,7 @@ class BlackJackView(disnake.ui.View):
             self.bet = bal
         embed = disnake.Embed(color=disnake.Color.blurple(),
                               title=f"{str(member)}'s Blackjack Game",
-                              description=f"Your current balance: ${bal}\nBet: ${self.bet}")
+                              description=f"Your current balance: {int_to_money(bal)}\nBet: ${self.bet}")
         for card in self.dealer:
             _, num = card.split(" ")
             if num == "A":
@@ -296,7 +296,7 @@ class BlackJackView(disnake.ui.View):
             self.game = False
             bal = round(bal - self.bet, 2)
             await set_balance(self.guild, self.author, bal)
-            embed.description = f"**The dealer got a Blackjack. You lost!**\nYour current balance: ${bal}\nBet: ${self.bet}"
+            embed.description = f"**The dealer got a Blackjack. You lost!**\nYour current balance: {int_to_money(bal)}\nBet: ${self.bet}"
             for card in self.dealer:
                 symbol, num = card.split(" ")
                 dealer_string += f"[{symbol} {num}] "
@@ -306,7 +306,7 @@ class BlackJackView(disnake.ui.View):
             self.remove_item(self.stand_button)
             self.remove_item(self.hit)
             self.game = False
-            embed.description = f"**It's a push!**\nYour current balance: ${bal}\nBet: ${self.bet}"
+            embed.description = f"**It's a push!**\nYour current balance: {int_to_money(bal)}\nBet: ${self.bet}"
             for card in self.dealer:
                 symbol, num = card.split(" ")
                 dealer_string += f"[{symbol} {num}] "
@@ -318,7 +318,7 @@ class BlackJackView(disnake.ui.View):
             self.game = False
             bal = round(bal + self.bet, 2)
             await set_balance(self.guild, self.author, bal)
-            embed.description = f"**You got a Blackjack. You won!**\nYour current balance: ${bal}\nBet: ${self.bet}"
+            embed.description = f"**You got a Blackjack. You won!**\nYour current balance: {int_to_money(bal)}\nBet: ${self.bet}"
             for card in self.dealer:
                 symbol, num = card.split(" ")
                 dealer_string += f"[{symbol} {num}] "
@@ -403,7 +403,7 @@ class BlackJackView(disnake.ui.View):
             symbol, num = card.split(" ")
             player_string += f"[{symbol} {num}] "
         embed = disnake.Embed(
-            description=f"Your current balance: ${bal}\nBet: ${self.bet}",
+            description=f"Your current balance: {int_to_money(bal)}\nBet: ${self.bet}",
             color=disnake.Color.blurple(), title=f"{str(inter.author)}'s Blackjack Game")
         while dealer < 17:
             if len(self.deck) < 1:
@@ -459,7 +459,7 @@ class BlackJackView(disnake.ui.View):
             self.remove_item(self.stand_button)
             self.remove_item(self.hit)
             self.game = False
-            embed.description = f"**It's a push!**\nYour current balance: ${bal}\nBet: ${self.bet}"
+            embed.description = f"**It's a push!**\nYour current balance: {int_to_money(bal)}\nBet: ${self.bet}"
         elif dealer > 21:
             bal = round(bal + self.bet, 2)
             await set_balance(inter.guild_id, inter.author.id, bal)
@@ -468,7 +468,7 @@ class BlackJackView(disnake.ui.View):
             self.remove_item(self.stand_button)
             self.remove_item(self.hit)
             self.game = False
-            embed.description = f"**The dealer busted. You won!**\nYour current balance: ${bal}\nBet: ${self.bet}"
+            embed.description = f"**The dealer busted. You won!**\nYour current balance: {int_to_money(bal)}\nBet: ${self.bet}"
         elif dealer > player:
             bal = round(bal - self.bet, 2)
             await set_balance(inter.guild_id, inter.author.id, bal)
@@ -477,7 +477,7 @@ class BlackJackView(disnake.ui.View):
             self.remove_item(self.stand_button)
             self.remove_item(self.hit)
             self.game = False
-            embed.description = f"**You lost!**\nYour current balance: ${bal}\nBet: ${self.bet}"
+            embed.description = f"**You lost!**\nYour current balance: {int_to_money(bal)}\nBet: ${self.bet}"
             if bal <= 0:
                 await inter.channel.send(f"{inter.author.mention}, you are out of money.", delete_after=7)
                 try:
@@ -495,7 +495,7 @@ class BlackJackView(disnake.ui.View):
             self.remove_item(self.stand_button)
             self.remove_item(self.hit)
             self.game = False
-            embed.description = f"**You won!**\nYour current balance: ${bal}\nBet: ${self.bet}"
+            embed.description = f"**You won!**\nYour current balance: {int_to_money(bal)}\nBet: ${self.bet}"
         try:
             await inter.message.edit(embed=embed, view=self)
         except:

@@ -15,8 +15,9 @@ class Events(commands.Cog):
         if isinstance(error, commands.errors.CommandOnCooldown):
             time_remaining = round(error.retry_after, 2)
             time_remaining = time.time() + time_remaining
-            await inter.response.send_message(f"You need to wait until {get_discord_date(time_remaining)} to use that command again.",
-                                              ephemeral=True)
+            await inter.response.send_message(
+                f"You need to wait until {get_discord_date(time_remaining)} to use that command again.",
+                ephemeral=True)
         elif isinstance(error, commands.errors.MissingRequiredArgument):
             pass
         elif isinstance(error, commands.errors.BotMissingPermissions) and not hasattr(inter, "handled_in_local"):

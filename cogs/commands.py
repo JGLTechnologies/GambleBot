@@ -6,6 +6,7 @@ from main import get_discord_date
 from limits.aio.strategies import MovingWindowRateLimiter
 from limits.aio.storage import MemoryStorage
 from limits import RateLimitItemPerHour, RateLimitItemPerMinute
+from main import int_to_money
 
 
 class Commands(commands.Cog):
@@ -40,7 +41,7 @@ class Commands(commands.Cog):
                                   member: disnake.Member = commands.Param(),
                                   balance: int = commands.Param()):
         await set_balance(inter.guild_id, member.id, balance)
-        await inter.response.send_message(f"Set {str(member)}'s balance to ${balance}.", ephemeral=True)
+        await inter.response.send_message(f"Set {str(member)}'s balance to {int_to_money(balance)}.", ephemeral=True)
 
     @commands.slash_command(name="balance")
     @commands.guild_only()
@@ -48,7 +49,7 @@ class Commands(commands.Cog):
     async def balance_command(self, inter: disnake.ApplicationCommandInteraction,
                               member: disnake.Member = commands.Param(default=None)):
         bal = await get_balance(inter.guild_id, member.id if member is not None else inter.author.id)
-        await inter.response.send_message(f"{str(member or inter.author)}'s balance is ${bal}.")
+        await inter.response.send_message(f"{str(member or inter.author)}'s balance is {int_to_money(bal)}.")
 
     @commands.slash_command(name="ping")
     async def ping(self, inter: disnake.ApplicationCommandInteraction):

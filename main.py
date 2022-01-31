@@ -12,6 +12,11 @@ cogs = ["cogs.rps", "cogs.events", "cogs.commands", "cogs.credit", "cogs.shop", 
 bot = commands.AutoShardedInteractionBot(intents=disnake.Intents.all(), sync_commands_debug=True)
 
 
+def int_to_money(num: int) -> str:
+    number_with_commas = "{:,}".format(round(num, 2))
+    return "$" + number_with_commas
+
+
 def load_cogs():
     for cog in cogs:
         bot.load_extension(cog)
