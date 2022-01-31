@@ -206,7 +206,7 @@ class RPS(commands.Cog):
         view = RPSView(bet=bet, author=inter.author.id, guild=inter.guild_id,
                        channel=inter.channel_id, bot=self.bot)
         embed = disnake.Embed(
-            description=f"Your current balance: ${await get_balance(inter.guild_id, inter.author.id)}\nBet: {int_to_money(bet)}",
+            description=f"Your current balance: {int_to_money(await get_balance(inter.guild_id, inter.author.id))}\nBet: {int_to_money(bet)}",
             title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
         message = await inter.channel.send(inter.author.mention, embed=embed,
                                            view=view)
