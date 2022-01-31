@@ -24,6 +24,14 @@ class Commands(commands.Cog):
         self.minute_items[minutes] = item
         return item
 
+    @commands.guild_only()
+    @commands.slash_command(name="errors", guild_ids=[844418702430175272])
+    @commands.has_permissions(administrator=True)
+    async def errors(self, inter: disnake.ApplicationCommandInteraction):
+        with open("GambleBot.log", "rb") as f:
+            file = disnake.File(f, "GambleBot.txt")
+            await inter.response.send_message(file=file, ephemeral=True)
+
     @commands.slash_command(name="setbalance")
     @commands.guild_only()
     @commands.bot_has_permissions(administrator=True)
