@@ -31,10 +31,12 @@ class Drugs(commands.Cog):
         self.moving_window = MovingWindowRateLimiter(self.storage)
 
     @commands.slash_command(name="drugs")
+    @commands.guild_only()
     async def drugs(self, inter: disnake.ApplicationCommandInteraction):
         pass
 
     @drugs.sub_command(name="steal")
+    @commands.guild_only()
     async def drugs_steal(self, inter: disnake.ApplicationCommandInteraction):
         if not await self.moving_window.test(get_minute_item(5),
                                              ["steal", inter.guild_id, inter.author.id]):
@@ -81,6 +83,7 @@ class Drugs(commands.Cog):
                                     upgraded=u)
 
     @drugs.sub_command(name="sell")
+    @commands.guild_only()
     async def drugs_sell(self, inter: disnake.ApplicationCommandInteraction):
         if not await self.moving_window.test(get_minute_item(20),
                                              ["sell", inter.guild_id, inter.author.id]):
@@ -113,6 +116,7 @@ class Drugs(commands.Cog):
         await inter.response.send_message(f"You successfully sold ${p} worth of drugs.")
 
     @drugs.sub_command(name="upgrade")
+    @commands.guild_only()
     async def drugs_upgrade(self, inter: disnake.ApplicationCommandInteraction):
         if not await has_business(inter.guild_id, inter.author.id, "drugs"):
             await inter.response.send_message(
@@ -136,6 +140,7 @@ class Drugs(commands.Cog):
         await set_balance(inter.guild_id, inter.author.id, bal - 200000)
 
     @drugs.sub_command(name="info")
+    @commands.guild_only()
     async def info(self, inter: disnake.ApplicationCommandInteraction):
         if not await has_business(inter.guild_id, inter.author.id, "drugs"):
             await inter.response.send_message(
