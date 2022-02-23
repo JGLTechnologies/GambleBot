@@ -238,9 +238,9 @@ class Commands(commands.Cog):
                     admin_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
                 embed.add_field(name="**Admin**", value=admin_str, inline=False)
         else:
-            embed.add_field(name="**Admin**", value=admin_str, inline=False)
             for command in admin:
                 admin_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
+        embed.add_field(name="**Admin**", value=admin_str, inline=False)
         await inter.response.send_message(embed=embed, ephemeral=True)
 
     @commands.guild_only()
