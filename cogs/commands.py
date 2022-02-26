@@ -69,7 +69,7 @@ class Commands(commands.Cog):
                         value=", ".join([role.mention for role in member.roles if role.name != "@everyone"]))
         embed.add_field(name="Display Name", value=member.display_name)
         embed.add_field(name="ID", value=member.id)
-        embed.set_thumbnail(url=member.avatar.url or member.default_avatar.url)
+        embed.set_thumbnail(url=member.avatar.url if member.avatar is not None else member.default_avatar.url)
         await inter.response.send_message(embed=embed)
 
     @commands.slash_command(name="setchannel")
