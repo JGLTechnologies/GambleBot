@@ -93,10 +93,10 @@ class Commands(commands.Cog):
         bills = await get_channel(inter.guild_id, "bills")
         info = await get_channel(inter.guild_id, "info")
         bills = self.bot.get_channel(bills)
-        info = self.bot.get_channel(inter)
+        info = self.bot.get_channel(info)
         embed = disnake.Embed(title=f"Config For {inter.guild.name}", color=disnake.Color.blurple())
         embed.add_field(inline=False, name="Channels",
-                        value=f"Bills: {bills.mention if bills is not None else 'Not Set'}\nBills: {info.mention if info is not None else 'Not Set'}")
+                        value=f"Bills: {bills.mention if bills is not None else 'Not Set'}\nInfo: {info.mention if info is not None else 'Not Set'}")
         await inter.response.send_message(embed=embed, ephemeral=True)
 
     @commands.slash_command(name="rob")
