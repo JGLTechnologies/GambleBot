@@ -69,7 +69,7 @@ class Commands(commands.Cog):
                         value=", ".join([role.mention for role in member.roles if role.name != "@everyone"]))
         embed.add_field(name="Display Name", value=member.display_name)
         embed.add_field(name="ID", value=member.id)
-        embed.set_thumbnail(url=member.avatar.url or member.default_avatar.url)
+        embed.set_thumbnail(url=member.avatar.url if member.avatar is not None else member.default_avatar.url)
         await inter.response.send_message(embed=embed)
 
     @commands.slash_command(name="setchannel")
@@ -238,9 +238,9 @@ class Commands(commands.Cog):
                     admin_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
                 embed.add_field(name="**Admin**", value=admin_str, inline=False)
         else:
-            embed.add_field(name="**Admin**", value=admin_str, inline=False)
             for command in admin:
                 admin_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
+        embed.add_field(name="**Admin**", value=admin_str, inline=False)
         await inter.response.send_message(embed=embed, ephemeral=True)
 
     @commands.guild_only()

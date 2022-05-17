@@ -15,6 +15,8 @@ bot = commands.AutoShardedInteractionBot(intents=disnake.Intents.all(), sync_com
 
 def int_to_money(num: int) -> str:
     number_with_commas = "{:,}".format(round(num, 2))
+    if "." in number_with_commas and int(number_with_commas.split(".")[1]) == 0:
+        return "$" + number_with_commas.split(".")[0]
     return "$" + number_with_commas
 
 
