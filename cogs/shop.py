@@ -1,5 +1,4 @@
 import time
-import aiosqlite
 import disnake
 from disnake.ext import tasks, commands
 from main import int_to_money
@@ -89,44 +88,43 @@ class Shop(commands.Cog):
 
     @tasks.loop(seconds=10)
     async def security_loop(self):
-        async with aiosqlite.connect("bot.db") as db:
-            async with db.execute("""CREATE TABLE IF NOT EXISTS security(
+        async with self.bot.db.execute("""CREATE TABLE IF NOT EXISTS security(
                 member INTEGER,
                 guild INTEGER,
                 last_paid INTEGER,
                 PRIMARY KEY (member,guild)
             )"""):
-                pass
-            await db.commit()
-            async with db.execute("SELECT member,guild,last_paid FROM security") as cursor:
-                async for entry in cursor:
-                    member_id, guild_id, last_paid = entry
-                    if last_paid <= time.time() - (24 * 3600):
-                        bal = await get_balance(guild_id, member_id)
-                        guild = self.bot.get_guild(guild_id)
-                        if guild is None:
-                            continue
-                        channel = guild.get_channel(await get_channel(guild_id, "bills"))
-                        if bal - 100000 < 0:
-                            if channel is not None:
-                                await channel.send(
-                                    f"{guild.get_member(member_id).mention}, you do not have enough money to pay for security, so your subscription has been canceled.")
-                            else:
-                                try:
-                                    await guild.get_member(member_id).send(
-                                        f"{guild.get_member(member_id).mention}, you do not have enough money to pay for security on {guild.name}, so your subscription has been canceled.")
-                                except Exception:
-                                    continue
-                            await remove_security(guild_id, member_id)
+            pass
+        await self.bot.db.commit()
+        async with self.bot.db.execute("SELECT member,guild,last_paid FROM security") as cursor:
+            async for entry in cursor:
+                member_id, guild_id, last_paid = entry
+                if last_paid <= time.time() - (24 * 3600):
+                    bal = await get_balance(guild_id, member_id)
+                    guild = self.bot.get_guild(guild_id)
+                    if guild is None:
+                        continue
+                    channel = guild.get_channel(await get_channel(guild_id, "bills"))
+                    if bal - 100000 < 0:
+                        if channel is not None:
+                            await channel.send(
+                                f"{guild.get_member(member_id).mention}, you do not have enough money to pay for security, so your subscription has been canceled.")
                         else:
-                            await set_balance(guild_id, member_id, bal - 100000)
-                            if channel is not None:
-                                await channel.send(
-                                    f"{guild.get_member(member_id).mention}, you have been charged $100000 for your daily security bill.")
-                            async with db.execute("UPDATE security SET last_paid=? WHERE member=? and guild=?",
-                                                  (time.time(), member_id, guild_id)):
-                                pass
-                            await db.commit()
+                            try:
+                                await guild.get_member(member_id).send(
+                                    f"{guild.get_member(member_id).mention}, you do not have enough money to pay for security on {guild.name}, so your subscription has been canceled.")
+                            except Exception:
+                                continue
+                        await remove_security(guild_id, member_id)
+                    else:
+                        await set_balance(guild_id, member_id, bal - 100000)
+                        if channel is not None:
+                            await channel.send(
+                                f"{guild.get_member(member_id).mention}, you have been charged $100000 for your daily security bill.")
+                        async with self.bot.db.execute("UPDATE security SET last_paid=? WHERE member=? and guild=?",
+                                                   (time.time(), member_id, guild_id)):
+                            pass
+                        await self.bot.db.commit()
 
     @security_loop.before_loop
     async def before_security_loop(self):

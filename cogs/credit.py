@@ -1,5 +1,4 @@
 import time
-import aiosqlite
 import disnake
 from disnake.ext import commands, tasks
 from db import get_balance, set_balance, credit_add, get_channel
@@ -25,8 +24,7 @@ class Credit(commands.Cog):
 
     @commands.Cog.listener("on_button_click")
     async def on_button_click(self, inter: disnake.MessageInteraction):
-        async with aiosqlite.connect("bot.db") as db:
-            async with db.execute("""CREATE TABLE IF NOT EXISTS credit(
+        async with self.bot.db.execute("""CREATE TABLE IF NOT EXISTS credit(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 guild INTEGER,
                 member INTEGER,
@@ -34,32 +32,32 @@ class Credit(commands.Cog):
                 amount FLOAT,
                 due_date INTEGER
             )"""):
+            pass
+        await self.bot.db.commit()
+        async with self.bot.db.execute(
+                "SELECT id,amount,guild,message,due_date,member FROM credit WHERE guild=? and message=? and member=?",
+                (inter.guild_id, inter.message.id, inter.author.id)) as cursor:
+            try:
+                id, amount, guild, message_id, due_date, member_id = await cursor.fetchone()
+            except Exception:
+                return
+            if inter.author.id != member_id:
+                return
+            bal = await get_balance(inter.guild_id, inter.author.id)
+            if bal - amount * 1.5 < 0:
+                await inter.response.send_message("You do not have enough money.", ephemeral=True)
+                return
+            try:
+                message = await inter.channel.fetch_message(message_id)
+                await message.delete()
+            except:
                 pass
-            await db.commit()
-            async with db.execute(
-                    "SELECT id,amount,guild,message,due_date,member FROM credit WHERE guild=? and message=? and member=?",
-                    (inter.guild_id, inter.message.id, inter.author.id)) as cursor:
-                try:
-                    id, amount, guild, message_id, due_date, member_id = await cursor.fetchone()
-                except Exception:
-                    return
-                if inter.author.id != member_id:
-                    return
-                bal = await get_balance(inter.guild_id, inter.author.id)
-                if bal - amount * 1.5 < 0:
-                    await inter.response.send_message("You do not have enough money.", ephemeral=True)
-                    return
-                try:
-                    message = await inter.channel.fetch_message(message_id)
-                    await message.delete()
-                except:
-                    pass
-                await inter.channel.send(
-                    f"{inter.author.mention}, you have successfully paid your bill. You have been charged ${amount * 1.5}")
-                await set_balance(inter.guild_id, inter.author.id, bal - (amount * 1.5))
-                async with db.execute("DELETE FROM credit WHERE id=?", (id,)):
-                    pass
-                await db.commit()
+            await inter.channel.send(
+                f"{inter.author.mention}, you have successfully paid your bill. You have been charged ${amount * 1.5}")
+            await set_balance(inter.guild_id, inter.author.id, bal - (amount * 1.5))
+            async with self.bot.db.execute("DELETE FROM credit WHERE id=?", (id,)):
+                pass
+            await self.bot.db.commit()
 
     @commands.slash_command(name="credit")
     @commands.guild_only()
@@ -86,8 +84,7 @@ class Credit(commands.Cog):
             await inter.response.send_message(f"You can only request 5x your current balance (${bal * 5}).",
                                               ephemeral=True)
             return
-        async with aiosqlite.connect("bot.db") as db:
-            async with db.execute("""CREATE TABLE IF NOT EXISTS credit(
+            async with self.bot.db.execute("""CREATE TABLE IF NOT EXISTS credit(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 guild INTEGER,
                 member INTEGER,
@@ -96,9 +93,9 @@ class Credit(commands.Cog):
                 due_date INTEGER
             )"""):
                 pass
-            await db.commit()
-            async with db.execute("SELECT id,message FROM credit WHERE guild=? and member=?",
-                                  (inter.guild_id, inter.author.id)) as cursor:
+            await self.bot.db.commit()
+            async with self.bot.db.execute("SELECT id,message FROM credit WHERE guild=? and member=?",
+                                           (inter.guild_id, inter.author.id)) as cursor:
                 entry = await cursor.fetchone()
                 if entry is not None:
                     id, msg = entry
@@ -107,9 +104,9 @@ class Credit(commands.Cog):
                         await inter.response.send_message("You already have an unpaid credit bill.", ephemeral=True)
                         return
                     except disnake.NotFound:
-                        async with db.execute("DELETE FROM credit WHERE id=?", (id,)):
+                        async with self.bot.db.execute("DELETE FROM credit WHERE id=?", (id,)):
                             pass
-                        await db.commit()
+                        await self.bot.db.commit()
         await self.moving_window.hit(self.item, [str(inter.author.id), str(inter.guild_id)])
         embed = disnake.Embed(title="Credit Bill", color=disnake.Color.blurple())
         embed.add_field(inline=False, name="Amount Owed", value=f"${amount * 1.5}")
@@ -128,53 +125,51 @@ class Credit(commands.Cog):
                           member: disnake.Member = commands.Param(default=None)):
         member = member or inter.author
         await inter.response.send_message(f"{str(member)}'s credit bills have been cleared.", ephemeral=True)
-        async with aiosqlite.connect("bot.db") as db:
-            async with db.execute("DELETE FROM credit WHERE member=?", (member.id,)):
-                pass
-            await db.commit()
+        async with self.bot.db.execute("DELETE FROM credit WHERE member=?", (member.id,)):
+            pass
+        await self.bot.db.commit()
 
     @tasks.loop(seconds=10)
     async def check_bills(self):
-        async with aiosqlite.connect("bot.db") as db:
-            async with db.execute("""CREATE TABLE IF NOT EXISTS credit(
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                guild INTEGER,
-                member INTEGER,
-                message INTEGER,
-                amount FLOAT,
-                due_date INTEGER
-            )"""):
-                pass
-            await db.commit()
-            async with db.execute("SELECT id,guild,member,amount,due_date,message FROM credit") as cursor:
-                async for entry in cursor:
-                    id, guild, member, amount, due_date, message = entry
-                    if time.time() >= due_date:
-                        channel = await get_channel(guild, "bills")
-                        async with db.execute("DELETE FROM credit WHERE id=?", (id,)):
-                            pass
-                        await db.commit()
-                        guild = self.bot.get_guild(guild)
-                        if guild is None:
-                            continue
-                        channel = guild.get_channel(channel)
-                        if channel is None:
-                            continue
+        async with self.bot.db.execute("""CREATE TABLE IF NOT EXISTS credit(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    guild INTEGER,
+                    member INTEGER,
+                    message INTEGER,
+                    amount FLOAT,
+                    due_date INTEGER
+                )"""):
+            pass
+        await self.bot.db.commit()
+        async with self.bot.db.execute("SELECT id,guild,member,amount,due_date,message FROM credit") as cursor:
+            async for entry in cursor:
+                id, guild, member, amount, due_date, message = entry
+                if time.time() >= due_date:
+                    channel = await get_channel(guild, "bills")
+                    async with self.bot.db.execute("DELETE FROM credit WHERE id=?", (id,)):
+                        pass
+                    await self.bot.db.commit()
+                    guild = self.bot.get_guild(guild)
+                    if guild is None:
+                        continue
+                    channel = guild.get_channel(channel)
+                    if channel is None:
+                        continue
+                    try:
+                        await channel.fetch_message(message)
+                    except disnake.NotFound:
+                        continue
+                    member = guild.get_member(member)
+                    if channel is not None:
+                        await channel.send(
+                            f"{member.mention}, you have failed to pay your credit bill on time. You have been charged ${amount * 2}")
+                        await set_balance(guild.id, member.id, (await get_balance(guild.id, member.id)) - 1)
+                    else:
                         try:
-                            await channel.fetch_message(message)
-                        except disnake.NotFound:
-                            continue
-                        member = guild.get_member(member)
-                        if channel is not None:
-                            await channel.send(
-                                f"{member.mention}, you have failed to pay your credit bill on time. You have been charged ${amount * 2}")
-                            await set_balance(guild.id, member.id, (await get_balance(guild.id, member.id)) - 1)
-                        else:
-                            try:
-                                await member.send(
-                                    f"{member.mention}, you have failed to pay your credit bill on {guild.name} on time. You have been charged ${amount * 2}")
-                            except Exception:
-                                pass
+                            await member.send(
+                                f"{member.mention}, you have failed to pay your credit bill on {guild.name} on time. You have been charged ${amount * 2}")
+                        except Exception:
+                            pass
 
     @check_bills.before_loop
     async def before_bills_check(self):

@@ -1,4 +1,3 @@
-import aiosqlite
 import disnake
 from disnake.ext import commands, tasks
 import random
@@ -7,7 +6,6 @@ from limits import RateLimitItemPerMinute
 from limits.aio.storage import MemoryStorage
 from limits.aio.strategies import MovingWindowRateLimiter
 from db import get_channel
-
 from main import get_discord_date, int_to_money
 
 minute_items = {}
@@ -157,8 +155,52 @@ class Drugs(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def supplies_loop(self):
-        async with aiosqlite.connect("bot.db") as db:
-            async with db.execute("""CREATE TABLE IF NOT EXISTS business(
+        async with self.bot.db.execute("""CREATE TABLE IF NOT EXISTS business(
+            member INTEGER,
+            guild INTEGER,
+            upgraded INTEGER,
+            name TEXT,
+            supplies INT,
+            product INT,
+            PRIMARY KEY (name, member, guild)
+        )"""):
+            pass
+        await self.bot.db.commit()
+        async with self.bot.db.execute("SELECT upgraded,supplies,member,guild,product FROM business WHERE name=?",
+                                   ("drugs",)) as cursor:
+            async for entry in cursor:
+                u, supplies, member, guild, product = entry
+                if supplies <= 0:
+                    continue
+                if self.bot.get_guild(guild) is None:
+                    continue
+                if self.bot.get_guild(guild).get_member(member) is None:
+                    continue
+                if str(self.bot.get_guild(guild).get_member(member).status) != "online":
+                    continue
+                if not bool(u):
+                    if supplies < 2500:
+                        product += supplies
+                        supplies = 0
+                    else:
+                        product += 2500
+                        supplies -= 2500
+                else:
+                    if supplies < 5000:
+                        product += supplies
+                        supplies = 0
+                    else:
+                        product += 5000
+                        supplies -= 5000
+                async with self.bot.db.execute(
+                        "UPDATE business SET product=?,supplies=?,upgraded=? WHERE guild=? and member=? and name=?",
+                        (round(product, 2), round(supplies, 2), u, guild, member, "drugs")):
+                    pass
+            await self.bot.db.commit()
+
+    @tasks.loop(hours=24)
+    async def cops_loop(self):
+        async with self.bot.db.execute("""CREATE TABLE IF NOT EXISTS business(
                 member INTEGER,
                 guild INTEGER,
                 upgraded INTEGER,
@@ -167,84 +209,38 @@ class Drugs(commands.Cog):
                 product INT,
                 PRIMARY KEY (name, member, guild)
             )"""):
-                pass
-            await db.commit()
-            async with db.execute("SELECT upgraded,supplies,member,guild,product FROM business WHERE name=?",
-                                  ("drugs",)) as cursor:
-                async for entry in cursor:
-                    u, supplies, member, guild, product = entry
-                    if supplies <= 0:
-                        continue
-                    if self.bot.get_guild(guild) is None:
-                        continue
-                    if self.bot.get_guild(guild).get_member(member) is None:
-                        continue
-                    if str(self.bot.get_guild(guild).get_member(member).status) != "online":
-                        continue
-                    if not bool(u):
-                        if supplies < 2500:
-                            product += supplies
-                            supplies = 0
-                        else:
-                            product += 2500
-                            supplies -= 2500
-                    else:
-                        if supplies < 5000:
-                            product += supplies
-                            supplies = 0
-                        else:
-                            product += 5000
-                            supplies -= 5000
-                    async with db.execute(
-                            "UPDATE business SET product=?,supplies=?,upgraded=? WHERE guild=? and member=? and name=?",
-                            (round(product, 2), round(supplies, 2), u, guild, member, "drugs")):
+            pass
+        await self.bot.db.commit()
+        async with self.bot.db.execute("SELECT upgraded,supplies,member,guild,product FROM business WHERE name=?",
+                                   ("drugs",)) as cursor:
+            async for entry in cursor:
+                u, supplies, member, guild, product = entry
+                if product <= 1000:
+                    continue
+                if not bool(u):
+                    busted = random.randrange(0, 25) == 1
+                else:
+                    continue
+                if busted:
+                    async with self.bot.db.execute(
+                            "UPDATE business SET product=? WHERE guild=? and member=? and name=?",
+                            (round(product / 2, 2), guild, member, "drugs")):
                         pass
-                await db.commit()
-
-    @tasks.loop(hours=24)
-    async def cops_loop(self):
-        async with aiosqlite.connect("bot.db") as db:
-            async with db.execute("""CREATE TABLE IF NOT EXISTS business(
-                    member INTEGER,
-                    guild INTEGER,
-                    upgraded INTEGER,
-                    name TEXT,
-                    supplies INT,
-                    product INT,
-                    PRIMARY KEY (name, member, guild)
-                )"""):
-                pass
-            await db.commit()
-            async with db.execute("SELECT upgraded,supplies,member,guild,product FROM business WHERE name=?",
-                                  ("drugs",)) as cursor:
-                async for entry in cursor:
-                    u, supplies, member, guild, product = entry
-                    if product <= 1000:
+                    channel_id = await get_channel(guild, "info")
+                    member = self.bot.get_guild(guild).get_member(member)
+                    if member is None:
                         continue
-                    if not bool(u):
-                        busted = random.randrange(0, 25) == 1
+                    channel = self.bot.get_guild(guild).get_channel(channel_id)
+                    if channel is not None:
+                        await channel.send(
+                            f"{member.mention}, your drug distribution business was busted by the police. They took half of your product. Upgrade your business to prevent this in the future.")
                     else:
-                        continue
-                    if busted:
-                        async with db.execute(
-                                "UPDATE business SET product=? WHERE guild=? and member=? and name=?",
-                                (round(product / 2, 2), guild, member, "drugs")):
+                        try:
+                            await member.send(
+                                f"{member.mention}, your drug distribution business on {self.bot.get_guild(guild).name} was busted by the police. They took half of your product. Upgrade your business to prevent this in the future.")
+                        except Exception:
                             pass
-                        channel_id = await get_channel(guild, "info")
-                        member = self.bot.get_guild(guild).get_member(member)
-                        if member is None:
-                            continue
-                        channel = self.bot.get_guild(guild).get_channel(channel_id)
-                        if channel is not None:
-                            await channel.send(
-                                f"{member.mention}, your drug distribution business was busted by the police. They took half of your product. Upgrade your business to prevent this in the future.")
-                        else:
-                            try:
-                                await member.send(
-                                    f"{member.mention}, your drug distribution business on {self.bot.get_guild(guild).name} was busted by the police. They took half of your product. Upgrade your business to prevent this in the future.")
-                            except Exception:
-                                pass
-                await db.commit()
+            await self.bot.db.commit()
 
     @cops_loop.before_loop
     async def before_cops_loop(self):

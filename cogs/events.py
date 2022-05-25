@@ -1,4 +1,5 @@
 import time
+import db
 from main import get_discord_date
 import disnake
 from disnake.ext import commands
@@ -54,16 +55,15 @@ class Events(commands.Cog):
                 print(f"Error in {inter.application_command.name}")
                 raise error
 
-    @commands.Cog.listener("on_ready")
+    @commands.Cog.listener("on_connect")
     async def on_ready(self):
         print("Bot is ready")
 
     @commands.Cog.listener("on_guild_join")
     async def message_guild_owner(self, guild: disnake.Guild):
-        owner = guild.owner
         try:
-            await owner.send("Thank you for adding me to your server! Do `/commands` for a list of commands.")
-        except:
+            await guild.owner.send("Thank you for adding me to your server! Do `/commands` for a list of commands.")
+        except Exception:
             pass
 
 
