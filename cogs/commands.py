@@ -159,10 +159,18 @@ class Commands(commands.Cog):
 
     @commands.slash_command(name="commands")
     async def help_command(self, inter: disnake.ApplicationCommandInteraction):
+        role_shop = [{"name": "Role Add", "usage": "`/role add role:[role] price:[integer]`",
+                      "desc": "Add a role to the role shop."},
+                     {"name": "Role Remove", "usage": "`/role add role:[role]`",
+                      "desc": "Remove a role from the role shop."},
+                     {"name": "Role Shop", "usage": "`/role shop`",
+                      "desc": "Display the role shop."},
+                     {"name": "Role Buy", "usage": "`/role buy role:[role]`",
+                      "desc": "Buy a role from the role shop."}]
         business = [{"name": "Steal Drugs", "usage": "`/drugs steal`",
-                     "desc": "Steal supplies to make drugs.", "admin": False},
+                     "desc": "Steal supplies to make drugs."},
                     {"name": "Sell Drugs", "usage": "`/drugs sell`",
-                     "desc": "Sells all of the drugs in your inventory.", "admin": False},
+                     "desc": "Sells all of the drugs in your inventory."},
                     {"name": "Upgrade Drug Distribution Business", "usage": "`/drugs upgrade`",
                      "desc": "Raises your business's production speed and lowers chances of being caught by the cops. Costs $200,000.",
                      "admin": False}, {"name": "Drug Info", "usage": "`/drugs info`",
@@ -170,49 +178,50 @@ class Commands(commands.Cog):
                                        "admin": False}
                     ]
         admin = [{"name": "Account Info", "usage": "`/accinfo member:[optional member]`",
-                  "desc": "Shows information for an account.", "admin": False},
+                  "desc": "Shows information for an account."},
                  {"name": "Set Channel", "usage": "`/setchannel name:[channel]`",
-                  "desc": "Chooses the channel for a certain purpose.", "admin": True},
+                  "desc": "Chooses the channel for a certain purpose."},
                  {"name": "Clear Credit Bills", "usage": "`/clearcreditbills member:[optional member]`",
-                  "desc": "Clears the credit card bill from a member.", "admin": True},
+                  "desc": "Clears the credit card bill from a member."},
                  {"name": "Server Configuration", "usage": "`/config`",
-                  "desc": "Shows the bot configuration for the server.", "admin": True}]
+                  "desc": "Shows the bot configuration for the server."}]
         shop = [{"name": "Unsubscribe", "usage": "`/unsubscribe service:[text]`",
-                 "desc": "Unsubscribe from a payment plan.", "admin": False},
+                 "desc": "Unsubscribe from a payment plan."},
                 {"name": "Shop", "usage": "`/shop`",
-                 "desc": "View all of the items available for purchase on the server.", "admin": False},
+                 "desc": "View all of the items available for purchase on the server."},
                 {"name": "Buy Item", "usage": "`/buyitem item:[text]`",
-                 "desc": "Allows you to buy an item from the shop.", "admin": False}]
+                 "desc": "Allows you to buy an item from the shop."}]
         economy = [{"name": "Apply For Credit", "usage": "`/credit amount:[integer]`",
                     "desc": "Get money using the credit system, you will have to pay back the amount you owe later.",
-                    "admin": False}, {"name": "Work", "usage": "`/work`", "desc": "Work for money", "admin": False},
+                    "admin": False}, {"name": "Work", "usage": "`/work`", "desc": "Work for money"},
                    {"name": "Rob", "usage": "`/rob member:[member]`",
-                    "desc": "Rob someone to get a percent of their money.", "admin": False},
+                    "desc": "Rob someone to get a percent of their money."},
                    {"name": "Balance", "usage": "`/balance member:[optional member]`",
-                    "desc": "Shows the balance of either you or another person.", "admin": False},
+                    "desc": "Shows the balance of either you or another person."},
                    {"name": "Beg", "usage": "`/beg`",
-                    "desc": "Beg for money!", "admin": False},
+                    "desc": "Beg for money!"},
                    {"name": "Invest", "usage": "`/invest amount:[integer]`",
-                    "desc": "Invest in the stock market to go big or make nothing.", "admin": False},
+                    "desc": "Invest in the stock market to go big or make nothing."},
                    {"name": "Pay", "usage": "`/pay member:[member] amount:[integer]`",
-                    "desc": "Pay another member.", "admin": False}]
+                    "desc": "Pay another member."}]
         misc = [{"name": "Invite", "usage": "`/invite`",
-                 "desc": "Get a link to invite GambleBot to your server.", "admin": False},
-                {"name": "Ping", "usage": "`/ping`", "desc": "Shows the latency of the bot.", "admin": True}]
+                 "desc": "Get a link to invite GambleBot to your server."},
+                {"name": "Ping", "usage": "`/ping`", "desc": "Shows the latency of the bot."}]
         games = [{"name": "Rock Paper Scissors Start", "usage": "`/rps start`",
-                  "desc": "Starts a game of Rock Paper Scissors for money.", "admin": False},
+                  "desc": "Starts a game of Rock Paper Scissors for money."},
                  {"name": "Rock Paper Scissors Cancel", "usage": "`/rps cancel`",
-                  "desc": "Cancels your current Rock Paper Scissors game", "admin": False},
+                  "desc": "Cancels your current Rock Paper Scissors game"},
                  {"name": "Blackjack Start", "usage": "`/blackjack start`",
-                  "desc": "Starts a game of Blackjack for money.", "admin": False},
+                  "desc": "Starts a game of Blackjack for money."},
                  {"name": "Blackjack Cancel", "usage": "`/blackjack cancel`",
-                  "desc": "Cancels your current Blackjack game", "admin": False}]
+                  "desc": "Cancels your current Blackjack game"}]
         economy_str = ""
         business_str = ""
         admin_str = ""
         misc_str = ""
         games_str = ""
         shop_str = ""
+        role_str = ""
         for command in economy:
             economy_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
         for command in business:
@@ -223,21 +232,17 @@ class Commands(commands.Cog):
             misc_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
         for command in shop:
             shop_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
+        for command in role_shop:
+            role_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
+        for command in admin:
+            admin_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
         embed = disnake.Embed(title="Commands", color=disnake.Color.blurple())
+        embed.add_field(name="**Admin**", value=admin_str, inline=False)
         embed.add_field(name="**Economy**", value=economy_str, inline=False)
         embed.add_field(name="**Businesses**", value=business_str, inline=False)
         embed.add_field(name="**Games**", value=games_str, inline=False)
         embed.add_field(name="**Shop**", value=shop_str, inline=False)
         embed.add_field(name="**Misc**", value=misc_str, inline=False)
-        if inter.guild is not None:
-            if inter.author.guild_permissions.administrator or inter.author.top_role.permissions.administrator:
-                for command in admin:
-                    admin_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
-                embed.add_field(name="**Admin**", value=admin_str, inline=False)
-        else:
-            for command in admin:
-                admin_str += f"Command Name: {command['name']}\nUsage: {command['usage']}\nDescription: {command['desc']}\n\n"
-        embed.add_field(name="**Admin**", value=admin_str, inline=False)
         await inter.response.send_message(embed=embed, ephemeral=True)
 
     @commands.guild_only()
