@@ -167,7 +167,7 @@ class Drugs(commands.Cog):
             pass
         await self.bot.db.commit()
         async with self.bot.db.execute("SELECT upgraded,supplies,member,guild,product FROM business WHERE name=?",
-                                   ("drugs",)) as cursor:
+                                       ("drugs",)) as cursor:
             async for entry in cursor:
                 u, supplies, member, guild, product = entry
                 if supplies <= 0:
@@ -212,7 +212,7 @@ class Drugs(commands.Cog):
             pass
         await self.bot.db.commit()
         async with self.bot.db.execute("SELECT upgraded,supplies,member,guild,product FROM business WHERE name=?",
-                                   ("drugs",)) as cursor:
+                                       ("drugs",)) as cursor:
             async for entry in cursor:
                 u, supplies, member, guild, product = entry
                 if product <= 1000:

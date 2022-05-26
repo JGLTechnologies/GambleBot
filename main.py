@@ -11,7 +11,8 @@ load_dotenv()
 logging.basicConfig(filename='GambleBot.log', level=logging.ERROR,
                     format="[%(asctime)s] %(levelname)s: %(message)s", datefmt="%m-%d-%Y %I:%M:%S %p")
 TOKEN = os.environ.get("GambleBot_TOKEN")
-cogs = ["cogs.rps", "cogs.events", "cogs.commands", "cogs.credit", "cogs.shop", "cogs.blackjack", "cogs.drugs", "cogs.role_shop"]
+cogs = ["cogs.rps", "cogs.events", "cogs.commands", "cogs.credit", "cogs.shop", "cogs.blackjack", "cogs.drugs",
+        "cogs.role_shop"]
 bot = commands.AutoShardedInteractionBot(intents=disnake.Intents.all(), sync_commands_debug=True)
 
 
@@ -36,6 +37,7 @@ async def start():
     db2 = await aiosqlite.connect("bot.db")
     await db.setup(db1)
     bot.db = db2
+
 
 load_cogs()
 bot.loop.create_task(start())
