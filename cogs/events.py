@@ -1,3 +1,5 @@
+import contextlib
+import logging
 import time
 from main import get_discord_date
 import disnake
@@ -7,6 +9,10 @@ from disnake.ext import commands
 class Events(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.AutoShardedInteractionBot = bot
+
+    @commands.Cog.listener("on_error")
+    async def on_error(self, error):
+        logging.error(error)
 
     @commands.Cog.listener("on_slash_command_error")
     async def slash_error(self, inter: disnake.MessageCommandInteraction, error):
@@ -63,10 +69,8 @@ class Events(commands.Cog):
 
     @commands.Cog.listener("on_guild_join")
     async def message_guild_owner(self, guild: disnake.Guild):
-        try:
+        with contextlib.suppress(disnake.Forbidden, disnake.HTTPException):
             await guild.owner.send("Thank you for adding me to your server! Do `/commands` for a list of commands.")
-        except Exception:
-            pass
 
 
 def setup(bot):

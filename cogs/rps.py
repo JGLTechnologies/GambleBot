@@ -161,7 +161,6 @@ class RPS(commands.Cog):
         pass
 
     @commands.guild_only()
-    @commands.bot_has_permissions(administrator=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     @rock_paper_scissors.sub_command(name="start")
     async def start(self, inter: disnake.ApplicationCommandInteraction):
@@ -215,7 +214,6 @@ class RPS(commands.Cog):
         await inter.followup.send("Successfully started a Rock Paper Scissors game.", ephemeral=True)
 
     @commands.guild_only()
-    @commands.bot_has_permissions(administrator=True)
     @rock_paper_scissors.sub_command(name="cancel")
     async def cancel(self, inter: disnake.ApplicationCommandInteraction):
         try:

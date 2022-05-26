@@ -43,7 +43,6 @@ class Commands(commands.Cog):
         await inter.response.send_message(f"Set {str(member)}'s balance to {int_to_money(balance)}.", ephemeral=True)
 
     @commands.guild_only()
-    @commands.bot_has_permissions(administrator=True)
     @commands.slash_command(name="balance")
     async def balance_command(self, inter: disnake.ApplicationCommandInteraction,
                               member: disnake.Member = commands.Param(default=None)):
@@ -72,7 +71,7 @@ class Commands(commands.Cog):
         await inter.response.send_message(embed=embed)
 
     @commands.guild_only()
-    @commands.bot_has_permissions(administrator=True)
+    @commands.has_permissions(administrator=True)
     @commands.slash_command(name="setchannel")
     async def set_channel(self, inter: disnake.ApplicationCommandInteraction,
                           name: str = commands.Param(description="The channel you want to set"),
@@ -86,7 +85,6 @@ class Commands(commands.Cog):
         await inter.response.send_message(f"Successfully set the {name} channel to {channel.mention}", ephemeral=True)
 
     @commands.guild_only()
-    @commands.bot_has_permissions(administrator=True)
     @commands.slash_command(name="config")
     async def get_config(self, inter: disnake.ApplicationCommandInteraction):
         bills = await get_channel(inter.guild_id, "bills")

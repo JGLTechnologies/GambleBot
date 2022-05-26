@@ -516,7 +516,6 @@ class BlackJack(commands.Cog):
         pass
 
     @commands.guild_only()
-    @commands.bot_has_permissions(administrator=True)
     @commands.cooldown(1, 5, commands.BucketType.member)
     @blackjack.sub_command(name="start")
     async def start(self, inter: disnake.ApplicationCommandInteraction):
@@ -571,7 +570,6 @@ class BlackJack(commands.Cog):
         await inter.followup.send("Successfully started a Blackjack game.", ephemeral=True)
 
     @commands.guild_only()
-    @commands.bot_has_permissions(administrator=True)
     @blackjack.sub_command(name="cancel")
     async def cancel(self, inter: disnake.ApplicationCommandInteraction):
         try:

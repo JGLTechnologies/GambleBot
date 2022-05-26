@@ -1,3 +1,5 @@
+import contextlib
+
 import disnake
 from disnake.ext import commands
 from db import set_balance, get_balance, add_role, remove_role, get_role_price, get_roles
@@ -76,7 +78,8 @@ class RoleShop(commands.Cog):
             await inter.response.send_message("You cannot afford this role.", ephemeral=True)
             return
         await set_balance(inter.guild_id, inter.author.id, bal - price)
-        await inter.author.add_roles(role)
+        with contextlib.suppress(disnake.Forbidden, disnake.HTTPException):
+            await inter.author.add_roles(role)
         await inter.response.send_message(f"You successfully bought @{role.name} for {int_to_money(price)}.")
 
 
