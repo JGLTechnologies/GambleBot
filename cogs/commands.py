@@ -240,6 +240,7 @@ class Commands(commands.Cog):
         embed.add_field(name="**Admin**", value=admin_str, inline=False)
         embed.add_field(name="**Economy**", value=economy_str, inline=False)
         embed.add_field(name="**Businesses**", value=business_str, inline=False)
+        embed.add_field(name="**Role Shop**", value=role_str, inline=False)
         embed.add_field(name="**Games**", value=games_str, inline=False)
         embed.add_field(name="**Shop**", value=shop_str, inline=False)
         embed.add_field(name="**Misc**", value=misc_str, inline=False)
