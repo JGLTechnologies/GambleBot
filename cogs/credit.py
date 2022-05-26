@@ -59,8 +59,8 @@ class Credit(commands.Cog):
                 pass
             await self.bot.db.commit()
 
-    @commands.slash_command(name="credit")
     @commands.guild_only()
+    @commands.slash_command(name="credit")
     async def credit_apply(self, inter: disnake.ApplicationCommandInteraction,
                            amount: int = commands.Param(description="The amount of credit you want")):
         if not await self.moving_window.test(self.item, [str(inter.author.id), str(inter.guild_id)]):
@@ -118,9 +118,9 @@ class Credit(commands.Cog):
             f"You have been paid ${amount}. You must pay your bill within 48 hours or you will be charged ${amount * 2}",
             ephemeral=True)
 
-    @commands.slash_command(name="clearcreditbills")
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
+    @commands.slash_command(name="clearcreditbills")
     async def clear_bills(self, inter: disnake.ApplicationCommandInteraction,
                           member: disnake.Member = commands.Param(default=None)):
         member = member or inter.author

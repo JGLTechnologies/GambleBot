@@ -26,26 +26,25 @@ class Commands(commands.Cog):
         return item
 
     @commands.guild_only()
-    @commands.slash_command(name="errors", guild_ids=[844418702430175272])
     @commands.has_permissions(administrator=True)
+    @commands.slash_command(name="errors", guild_ids=[844418702430175272])
     async def errors(self, inter: disnake.ApplicationCommandInteraction):
         with open("GambleBot.log", "rb") as f:
             file = disnake.File(f, "GambleBot.txt")
             await inter.response.send_message(file=file, ephemeral=True)
 
-    @commands.slash_command(name="setbalance")
     @commands.guild_only()
-    @commands.bot_has_permissions(administrator=True)
     @commands.has_permissions(administrator=True)
+    @commands.slash_command(name="setbalance")
     async def set_balance_command(self, inter: disnake.ApplicationCommandInteraction,
                                   member: disnake.Member = commands.Param(),
                                   balance: int = commands.Param()):
         await set_balance(inter.guild_id, member.id, balance)
         await inter.response.send_message(f"Set {str(member)}'s balance to {int_to_money(balance)}.", ephemeral=True)
 
-    @commands.slash_command(name="balance")
     @commands.guild_only()
     @commands.bot_has_permissions(administrator=True)
+    @commands.slash_command(name="balance")
     async def balance_command(self, inter: disnake.ApplicationCommandInteraction,
                               member: disnake.Member = commands.Param(default=None)):
         bal = await get_balance(inter.guild_id, member.id if member is not None else inter.author.id)
@@ -55,8 +54,8 @@ class Commands(commands.Cog):
     async def ping(self, inter: disnake.ApplicationCommandInteraction):
         await inter.response.send_message(f"Ping: {round(self.bot.latency, 2)}ms")
 
-    @commands.slash_command(name="accinfo")
     @commands.guild_only()
+    @commands.slash_command(name="accinfo")
     async def account_info(self, inter: disnake.ApplicationCommandInteraction,
                            member: disnake.Member = commands.Param(default=None)):
         if member is None:
@@ -72,9 +71,9 @@ class Commands(commands.Cog):
         embed.set_thumbnail(url=member.avatar.url if member.avatar is not None else member.default_avatar.url)
         await inter.response.send_message(embed=embed)
 
-    @commands.slash_command(name="setchannel")
     @commands.guild_only()
     @commands.bot_has_permissions(administrator=True)
+    @commands.slash_command(name="setchannel")
     async def set_channel(self, inter: disnake.ApplicationCommandInteraction,
                           name: str = commands.Param(description="The channel you want to set"),
                           channel: disnake.TextChannel = commands.Param()):
@@ -86,9 +85,9 @@ class Commands(commands.Cog):
         await set_channel(guild_id=inter.guild_id, channel_name=name.lower(), channel_id=channel.id)
         await inter.response.send_message(f"Successfully set the {name} channel to {channel.mention}", ephemeral=True)
 
-    @commands.slash_command(name="config")
     @commands.guild_only()
     @commands.bot_has_permissions(administrator=True)
+    @commands.slash_command(name="config")
     async def get_config(self, inter: disnake.ApplicationCommandInteraction):
         bills = await get_channel(inter.guild_id, "bills")
         info = await get_channel(inter.guild_id, "info")
@@ -99,8 +98,8 @@ class Commands(commands.Cog):
                         value=f"Bills: {bills.mention if bills is not None else 'Not Set'}\nInfo: {info.mention if info is not None else 'Not Set'}")
         await inter.response.send_message(embed=embed, ephemeral=True)
 
-    @commands.slash_command(name="rob")
     @commands.guild_only()
+    @commands.slash_command(name="rob")
     async def rob(self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member = commands.Param()):
         if not await self.moving_window.test(self.get_minute_item(15),
                                              ["rob_use", str(inter.guild_id), str(inter.author.id)]):
@@ -138,9 +137,9 @@ class Commands(commands.Cog):
                               (await get_balance(inter.guild_id, inter.author.id) - 1000))
         await inter.response.send_message(msg)
 
-    @commands.slash_command(name="work")
     @commands.guild_only()
     @commands.cooldown(1, 60, commands.BucketType.member)
+    @commands.slash_command(name="work")
     async def work_command(self, inter: disnake.ApplicationCommandInteraction):
         bal = await get_balance(inter.guild_id, inter.author.id)
         if random.randrange(0, 25) == 1:
@@ -325,8 +324,8 @@ class Commands(commands.Cog):
         await inter.response.send_message(msg)
         await set_balance(inter.guild_id, inter.author.id, bal + ((percent / 100) * amount - amount))
 
-    @commands.slash_command(name="pay")
     @commands.guild_only()
+    @commands.slash_command(name="pay")
     async def pay_command(self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member = commands.Param(),
                           amount: int = commands.Param()):
         if not await self.moving_window.test(self.get_minute_item(1),

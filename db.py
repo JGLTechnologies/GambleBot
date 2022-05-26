@@ -288,3 +288,68 @@ async def update_business_stats(guild_id: int, member_id: int, name: str, produc
             "UPDATE business SET product=?,supplies=?,upgraded=? WHERE guild=? and member=? and name=?",
             (round(product, 2), round(supplies, 2), upgraded, guild_id, member_id, name)):
         await DB.commit()
+
+
+async def add_role(guild_id: int, role_id: int, price: int) -> bool:
+    async with DB.execute("""CREATE TABLE IF NOT EXISTS role_shop(
+            guild INTEGER,
+            role INTEGER,
+            price INTEGER,
+            PRIMARY KEY (guild, role)
+        )"""):
+        pass
+    await DB.commit()
+    try:
+        async with DB.execute("INSERT INTO role_shop (guild,role,price) VALUES (?,?,?)",
+                              (guild_id, role_id, price)):
+            await DB.commit()
+            return True
+    except sqlite3.IntegrityError:
+        return False
+
+
+async def remove_role(guild_id: int, role_id: int) -> None:
+    async with DB.execute("""CREATE TABLE IF NOT EXISTS role_shop(
+            guild INTEGER,
+            role INTEGER,
+            price INTEGER,
+            PRIMARY KEY (guild, role)
+        )"""):
+        pass
+    await DB.commit()
+    async with DB.execute("DELETE FROM role_shop WHERE guild = ? and role = ?",
+                          (guild_id, role_id)):
+        await DB.commit()
+
+
+async def get_roles(guild_id: int) -> dict:
+    async with DB.execute("""CREATE TABLE IF NOT EXISTS role_shop(
+            guild INTEGER,
+            role INTEGER,
+            price INTEGER,
+            PRIMARY KEY (guild, role)
+        )"""):
+        pass
+    await DB.commit()
+    roles = {}
+    async with DB.execute("SELECT role, price FROM role_shop WHERE guild = ?", (guild_id,)) as cursor:
+        async for entry in cursor:
+            role, price = entry
+            roles[role] = price
+    return roles
+
+
+async def get_role_price(guild_id: int, role_id: int) -> typing.Optional[int]:
+    async with DB.execute("""CREATE TABLE IF NOT EXISTS role_shop(
+            guild INTEGER,
+            role INTEGER,
+            price INTEGER,
+            PRIMARY KEY (guild, role)
+        )"""):
+        pass
+    await DB.commit()
+    async with DB.execute("SELECT price FROM role_shop WHERE guild = ? and role = ?", (guild_id, role_id)) as cursor:
+        price = await cursor.fetchone()
+        if price is not None:
+            return price[0]
+        return price

@@ -28,8 +28,8 @@ class Drugs(commands.Cog):
         self.storage = MemoryStorage()
         self.moving_window = MovingWindowRateLimiter(self.storage)
 
-    @commands.slash_command(name="drugs")
     @commands.guild_only()
+    @commands.slash_command(name="drugs")
     async def drugs(self, inter: disnake.ApplicationCommandInteraction):
         pass
 

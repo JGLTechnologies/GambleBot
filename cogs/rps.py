@@ -155,6 +155,7 @@ class RPS(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.AutoShardedInteractionBot = bot
 
+    @commands.guild_only()
     @commands.slash_command(name="rps")
     async def rock_paper_scissors(self, inter: disnake.ApplicationCommandInteraction):
         pass

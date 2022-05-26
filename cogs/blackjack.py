@@ -510,6 +510,7 @@ class BlackJack(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.AutoShardedInteractionBot = bot
 
+    @commands.guild_only()
     @commands.slash_command(name="blackjack")
     async def blackjack(self, inter: disnake.ApplicationCommandInteraction):
         pass

@@ -1,5 +1,4 @@
 import time
-import db
 from main import get_discord_date
 import disnake
 from disnake.ext import commands
@@ -49,6 +48,9 @@ class Events(commands.Cog):
                                               ephemeral=True)
         elif isinstance(error, disnake.ext.commands.errors.NoPrivateMessage):
             await inter.response.send_message("You cannot use this command in a private message.",
+                                              ephemeral=True)
+        elif isinstance(error, disnake.Forbidden):
+            await inter.response.send_message("I don't have permission to do that.",
                                               ephemeral=True)
         else:
             if not hasattr(inter, "handled_in_local"):

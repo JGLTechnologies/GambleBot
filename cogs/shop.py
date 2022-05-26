@@ -11,8 +11,8 @@ class Shop(commands.Cog):
         self.bot: commands.AutoShardedInteractionBot = bot
         self.security_loop.start()
 
-    @commands.slash_command(name="buyitem")
     @commands.guild_only()
+    @commands.slash_command(name="buyitem")
     async def buy_item(self, inter: disnake.ApplicationCommandInteraction, item: str = commands.Param()):
         item = item.lower()
         items = ["security", "drugs"]
@@ -52,8 +52,8 @@ class Shop(commands.Cog):
                 f"You have successfully bought the drug distribution business. Balance: {int_to_money(bal)}",
                 ephemeral=True)
 
-    @commands.slash_command(name="unsubcribe")
     @commands.guild_only()
+    @commands.slash_command(name="unsubcribe")
     async def unsubscribe(self, inter: disnake.ApplicationCommandInteraction, item: str = commands.Param()):
         item = item.lower()
         items = ["security"]
@@ -71,8 +71,8 @@ class Shop(commands.Cog):
             await inter.response.send_message(
                 f"You have successfully unsubscribed from the security plan.", ephemeral=True)
 
-    @commands.slash_command(name="shop")
     @commands.guild_only()
+    @commands.slash_command(name="shop")
     async def shop(self, inter: disnake.ApplicationCommandInteraction):
         items = [{"name": "Security", "desc": "Lower you chances of getting robbed.", "type": "subscription",
                   "price": "$100,000 per day", "usage": "`/buyitem security`"},
@@ -122,7 +122,7 @@ class Shop(commands.Cog):
                             await channel.send(
                                 f"{guild.get_member(member_id).mention}, you have been charged $100000 for your daily security bill.")
                         async with self.bot.db.execute("UPDATE security SET last_paid=? WHERE member=? and guild=?",
-                                                   (time.time(), member_id, guild_id)):
+                                                       (time.time(), member_id, guild_id)):
                             pass
                         await self.bot.db.commit()
 
