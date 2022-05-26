@@ -1,4 +1,3 @@
-import contextlib
 import logging
 import aiosqlite
 import disnake
@@ -9,7 +8,7 @@ from dotenv import load_dotenv
 import db
 
 load_dotenv()
-logging.basicConfig(filename='GambleBot.log', level=logging.ERROR,
+logging.basicConfig(filename='GambleBot/GambleBot.log', level=logging.ERROR,
                     format="[%(asctime)s] %(levelname)s: %(message)s", datefmt="%m-%d-%Y %I:%M:%S %p")
 TOKEN = os.environ.get("GambleBot_TOKEN")
 cogs = ["cogs.rps", "cogs.events", "cogs.commands", "cogs.credit", "cogs.shop", "cogs.blackjack", "cogs.drugs",
@@ -34,8 +33,8 @@ def get_discord_date(ts: int = None) -> str:
 
 
 async def start():
-    db1 = await aiosqlite.connect("bot.db")
-    db2 = await aiosqlite.connect("bot.db")
+    db1 = await aiosqlite.connect("GambleBot/bot.db")
+    db2 = await aiosqlite.connect("GambleBot/bot.db")
     await db.setup(db1)
     bot.db = db2
 
