@@ -341,8 +341,8 @@ class Commands(commands.Cog):
             stock = random.choice(stock_list)
             percent = random.choice(stock["percent"])
             desc = stock["desc"]
-        msg = desc.format(pay=round(abs((percent / 100) * amount - amount), 2),
-                          money=round(bal + ((percent / 100) * amount - amount), 2))
+        msg = desc.format(pay=int_to_money(abs((percent / 100) * amount - amount)),
+                          money=int_to_money(bal + ((percent / 100) * amount - amount)))
         await inter.response.send_message(msg)
         await set_balance(inter.guild_id, inter.author.id, bal + ((percent / 100) * amount - amount))
 
