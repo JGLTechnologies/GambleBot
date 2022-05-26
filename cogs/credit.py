@@ -1,3 +1,4 @@
+import contextlib
 import time
 import disnake
 from disnake.ext import commands, tasks
@@ -47,11 +48,9 @@ class Credit(commands.Cog):
             if bal - amount * 1.5 < 0:
                 await inter.response.send_message("You do not have enough money.", ephemeral=True)
                 return
-            try:
+            with contextlib.suppress(disnake.Forbidden, disnake.HTTPException):
                 message = await inter.channel.fetch_message(message_id)
                 await message.delete()
-            except:
-                pass
             await inter.channel.send(
                 f"{inter.author.mention}, you have successfully paid your bill. You have been charged ${amount * 1.5}")
             await set_balance(inter.guild_id, inter.author.id, bal - (amount * 1.5))
@@ -165,11 +164,9 @@ class Credit(commands.Cog):
                             f"{member.mention}, you have failed to pay your credit bill on time. You have been charged ${amount * 2}")
                         await set_balance(guild.id, member.id, (await get_balance(guild.id, member.id)) - 1)
                     else:
-                        try:
+                        with contextlib.suppress(disnake.HTTPException, disnake.Forbidden):
                             await member.send(
                                 f"{member.mention}, you have failed to pay your credit bill on {guild.name} on time. You have been charged ${amount * 2}")
-                        except Exception:
-                            pass
 
     @check_bills.before_loop
     async def before_bills_check(self):

@@ -1,3 +1,4 @@
+import contextlib
 import random
 from db import set_balance, get_balance
 import disnake
@@ -37,11 +38,9 @@ class RPSMenu(disnake.ui.Select):
         bal = await get_balance(inter.guild_id, inter.author.id)
         if bal <= 0:
             await inter.channel.send("You are out of money.", delete_after=7)
-            try:
+            with contextlib.suppress(disnake.Forbidden, disnake.HTTPException):
                 msg = await inter.channel.fetch_message(rps_games[inter.guild_id][self.view.author][0])
                 await msg.delete()
-            except Exception:
-                pass
             return
         if self.view.rps.bet > bal:
             self.bet = bal
@@ -75,11 +74,9 @@ class RPSMenu(disnake.ui.Select):
                 self.bet = bal
             if bal <= 0:
                 await inter.channel.send(f"{inter.author.mention}, you are out of money.", delete_after=7)
-                try:
+                with contextlib.suppress(disnake.Forbidden, disnake.HTTPException):
                     msg = await inter.channel.fetch_message(rps_games[inter.guild_id][inter.author.id][0])
                     await msg.delete()
-                except Exception:
-                    pass
                 await set_balance(inter.guild_id, inter.author.id, bal)
                 return
             embed = disnake.Embed(
@@ -129,12 +126,9 @@ class ChangeBet(disnake.ui.Button):
                 title=f"{str(inter.author)}'s Rock Paper Scissors Game", color=disnake.Color.blurple())
             try:
                 await inter.message.edit(embed=embed)
-            except:
-                try:
+            except (disnake.Forbidden, disnake.NotFound, disnake.HTTPException):
+                with contextlib.suppress(Exception):
                     rps_games[inter.guild_id][inter.author.id][2].stop()
-                except:
-                    pass
-                return
 
 
 class RPSView(disnake.ui.View):

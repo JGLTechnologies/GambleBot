@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import random
 import typing
 from db import set_balance, get_balance
@@ -114,11 +115,9 @@ class Hit(disnake.ui.Button):
                 self.view.remove_item(self.view.stand_button)
                 if bal <= 0:
                     await inter.channel.send(f"{inter.author.mention}, you are out of money.", delete_after=7)
-                    try:
+                    with contextlib.suppress(disnake.Forbidden, disnake.HTTPException):
                         msg = await inter.channel.fetch_message(blackjack_games[inter.guild_id][inter.author.id][0])
                         await msg.delete()
-                    except Exception:
-                        pass
                     await set_balance(inter.guild_id, inter.author.id, bal)
                     return
             elif player == 21:
@@ -174,12 +173,9 @@ class ChangeBet(disnake.ui.Button):
                 title=f"{str(inter.author)}'s Blackjack Game", color=disnake.Color.blurple())
             try:
                 await inter.message.edit(embed=embed)
-            except:
-                try:
+            except (disnake.Forbidden, disnake.NotFound, disnake.HTTPException):
+                with contextlib.suppress(Exception):
                     blackjack_games[inter.guild_id][inter.author.id][2].stop()
-                except:
-                    pass
-                return
 
 
 class BlackJackView(disnake.ui.View):
@@ -348,12 +344,9 @@ class BlackJackView(disnake.ui.View):
         else:
             try:
                 await msg.edit(embed=embed, view=self)
-            except:
-                try:
+            except (disnake.Forbidden, disnake.NotFound, disnake.HTTPException):
+                with contextlib.suppress(Exception):
                     blackjack_games[msg.guild.id][msg.author.id][2].stop()
-                except:
-                    pass
-                return
 
     async def stand(self, inter: disnake.MessageInteraction):
         dealer = 0
@@ -440,11 +433,9 @@ class BlackJackView(disnake.ui.View):
             embed.add_field(inline=False, name=f"{str(inter.author)}'s Hand ({player})", value=player_string)
             try:
                 await inter.message.edit(embed=embed)
-            except:
-                try:
+            except (disnake.HTTPException, disnake.Forbidden, disnake.NotFound):
+                with contextlib.suppress(Exception):
                     blackjack_games[inter.guild_id][inter.author.id][2].stop()
-                except:
-                    pass
                 return
         dealer_string = ""
         for card in self.dealer:
@@ -480,11 +471,9 @@ class BlackJackView(disnake.ui.View):
             embed.description = f"**You lost!**\nYour current balance: {int_to_money(bal)}\nBet: ${self.bet}"
             if bal <= 0:
                 await inter.channel.send(f"{inter.author.mention}, you are out of money.", delete_after=7)
-                try:
+                with contextlib.suppress(disnake.HTTPException, disnake.Forbidden, disnake.NotFound):
                     msg = await inter.channel.fetch_message(blackjack_games[inter.guild_id][inter.author.id][0])
                     await msg.delete()
-                except Exception:
-                    pass
                 await set_balance(inter.guild_id, inter.author.id, bal)
                 return
         else:
@@ -498,12 +487,9 @@ class BlackJackView(disnake.ui.View):
             embed.description = f"**You won!**\nYour current balance: {int_to_money(bal)}\nBet: ${self.bet}"
         try:
             await inter.message.edit(embed=embed, view=self)
-        except:
-            try:
+        except (disnake.HTTPException, disnake.Forbidden, disnake.NotFound):
+            with contextlib.suppress(Exception):
                 blackjack_games[inter.guild_id][inter.author.id][2].stop()
-            except:
-                pass
-            return
 
 
 class BlackJack(commands.Cog):

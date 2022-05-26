@@ -1,3 +1,5 @@
+import contextlib
+
 import disnake
 from disnake.ext import commands, tasks
 import random
@@ -235,11 +237,9 @@ class Drugs(commands.Cog):
                         await channel.send(
                             f"{member.mention}, your drug distribution business was busted by the police. They took half of your product. Upgrade your business to prevent this in the future.")
                     else:
-                        try:
+                        with contextlib.suppress(disnake.HTTPException, disnake.Forbidden):
                             await member.send(
                                 f"{member.mention}, your drug distribution business on {self.bot.get_guild(guild).name} was busted by the police. They took half of your product. Upgrade your business to prevent this in the future.")
-                        except Exception:
-                            pass
             await self.bot.db.commit()
 
     @cops_loop.before_loop

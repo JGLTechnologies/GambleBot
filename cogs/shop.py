@@ -1,3 +1,4 @@
+import contextlib
 import time
 import disnake
 from disnake.ext import tasks, commands
@@ -110,11 +111,9 @@ class Shop(commands.Cog):
                             await channel.send(
                                 f"{guild.get_member(member_id).mention}, you do not have enough money to pay for security, so your subscription has been canceled.")
                         else:
-                            try:
+                            with contextlib.suppress(disnake.HTTPException, disnake.Forbidden):
                                 await guild.get_member(member_id).send(
                                     f"{guild.get_member(member_id).mention}, you do not have enough money to pay for security on {guild.name}, so your subscription has been canceled.")
-                            except Exception:
-                                continue
                         await remove_security(guild_id, member_id)
                     else:
                         await set_balance(guild_id, member_id, bal - 100000)
