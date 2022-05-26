@@ -88,7 +88,7 @@ class Drugs(commands.Cog):
                                              "sell", inter.guild_id, inter.author.id):
             reset_time, _ = await self.moving_window.get_window_stats(get_minute_item(20),
                                                                       "sell", inter.guild_id,
-                                                                       inter.author.id)
+                                                                      inter.author.id)
             await inter.response.send_message(
                 f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
             return

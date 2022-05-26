@@ -1,5 +1,4 @@
 import contextlib
-
 import disnake
 from disnake.ext import commands
 from db import set_balance, get_balance, add_role, remove_role, get_role_price, get_roles
