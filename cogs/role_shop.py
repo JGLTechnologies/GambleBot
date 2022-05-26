@@ -68,6 +68,9 @@ class RoleShop(commands.Cog):
     @role.sub_command(name="buy")
     async def role_buy(self, inter: disnake.ApplicationCommandInteraction, role: disnake.Role = commands.Param(
         description="The role you want to buy")):
+        if role in inter.author.roles:
+            await inter.response.send_message("You already have this role.", ephemeral=True)
+            return
         roles = await get_roles(inter.guild_id)
         if role.id not in roles:
             await inter.response.send_message("That role is not for sale on this server.", ephemeral=True)
