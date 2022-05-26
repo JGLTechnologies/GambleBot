@@ -159,14 +159,14 @@ class Commands(commands.Cog):
     async def work_command(self, inter: disnake.ApplicationCommandInteraction):
         bal = await get_balance(inter.guild_id, inter.author.id)
         if random.randrange(0, 25) == 1:
-            desc = "You hurt yourself while working, so you sued the company for $5000. You now have ${money}."
+            desc = "You hurt yourself while working, so you sued the company for $5000. You now have {money}."
             pay = 5000
         else:
-            job_list = [{"desc": "You drove someone in a taxi! They gave you ${pay}! You now have ${money}.",
+            job_list = [{"desc": "You drove someone in a taxi! They gave you {pay}! You now have {money}.",
                          "pay": [100, 150, 125, 175]},
-                        {"desc": "You worked as a cashier for 8 hours and made ${pay}! You now have ${money}.",
+                        {"desc": "You worked as a cashier for 8 hours and made {pay}! You now have {money}.",
                          "pay": [50, 60, 70, 80, 90, 100, 125]},
-                        {"desc": "You uploaded a video and made ${pay}! You now have ${money}.",
+                        {"desc": "You uploaded a video and made {pay}! You now have {money}.",
                          "pay": [100, 200, 300, 400, 500]}]
             job = random.choice(job_list)
             pay = random.choice(job["pay"])
@@ -281,21 +281,21 @@ class Commands(commands.Cog):
             return
         await self.moving_window.hit(self.get_minute_item(10), "beg", inter.guild_id, inter.author.id)
         if random.randrange(0, 25) == 1:
-            desc = "Congrats! Some generous rich man gave you $1000. You now have ${money}."
+            desc = "Congrats! Some generous rich man gave you $1000. You now have {money}."
             pay = 1000
         else:
-            beg_list = [{"desc": "Some woman walking by pitied you, so she gave you ${pay}. You now have ${money}.",
+            beg_list = [{"desc": "Some woman walking by pitied you, so she gave you {pay}. You now have {money}.",
                          "pay": [10, 12, 13, 15, 17, 20]},
-                        {"desc": "An old man walked by and gave you ${pay}. You now have ${money}.",
+                        {"desc": "An old man walked by and gave you {pay}. You now have {money}.",
                          "pay": [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 40]},
-                        {"desc": "It's your lucky day! You found ${pay} on the road!. You now have ${money}.",
+                        {"desc": "It's your lucky day! You found {pay} on the road!. You now have {money}.",
                          "pay": [1, 1, 1, 1, 1, 5, 5, 5, 10, 10, 10, 20, 50, 100]},
                         {"desc": "You made nothing during your begging session today.", "pay": [0]},
                         {
-                            "desc": "You tried to steal a purse from an old lady! You were fined ${pay}. You now have ${money}.",
+                            "desc": "You tried to steal a purse from an old lady! You were fined {pay}. You now have {money}.",
                             "pay": [-1, -3, -5, -7, -9, -10, -15]},
                         {
-                            "desc": "You stole a purse from an old lady! You got ${pay}. You now have ${money}.",
+                            "desc": "You stole a purse from an old lady! You got {pay}. You now have {money}.",
                             "pay": [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 30, 30, 30, 30, 30, 50, 70, 90, 100, 150]}]
             beg = random.choice(beg_list)
             pay = random.choice(beg["pay"])
@@ -321,22 +321,22 @@ class Commands(commands.Cog):
             return
         await self.moving_window.hit(self.get_minute_item(1), "invest", inter.guild_id, inter.author.id)
         if random.randrange(0, 25) == 1:
-            desc = "The market spiked and you made $500. You now have ${money}."
+            desc = "The market spiked and you made {pay}. You now have {money}."
             percent = 500
         else:
             stock_list = [{
-                "desc": "There was a slight increase in the market, and you made ${pay} in return! You now have ${money}.",
+                "desc": "There was a slight increase in the market, and you made {pay} in return! You now have {money}.",
                 "percent": [110, 111, 112, 113, 114, 115, 117, 120]},
-                {"desc": "The Stock Market crashed, and you lost ${pay}! You now have ${money}.",
+                {"desc": "The Stock Market crashed, and you lost {pay}! You now have {money}.",
                  "percent": [10, 20, 30, 40, 50]},
                 {
-                    "desc": "There was a slight decrease in the market, and you lost ${pay}! You now have ${money}.",
+                    "desc": "There was a slight decrease in the market, and you lost {pay}! You now have {money}.",
                     "percent": [90, 85, 75, 92, 93, 87, 65, 70, 76]}, {
-                    "desc": "There was a slight decrease in the market, and you lost ${pay}! You now have ${money}.",
+                    "desc": "There was a slight decrease in the market, and you lost {pay}! You now have {money}.",
                     "percent": [91, 83, 75, 92, 93, 70, 90, 80, 75]},
-                {"desc": "There was a spike in the market, and you made ${pay}! You now have ${money}.",
+                {"desc": "There was a spike in the market, and you made {pay}! You now have {money}.",
                  "percent": [150, 165, 175, 180, 190, 200, 220, 160, 170, 155, 300]}, {
-                    "desc": "There was a slight increase in the market, and you made ${pay} in return! You now have ${money}.",
+                    "desc": "There was a slight increase in the market, and you made {pay} in return! You now have {money}.",
                     "percent": [115, 141, 122, 143, 114, 135, 119, 120]}]
             stock = random.choice(stock_list)
             percent = random.choice(stock["percent"])
