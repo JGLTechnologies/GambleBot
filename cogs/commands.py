@@ -26,7 +26,7 @@ class Commands(commands.Cog):
         return item
 
     @commands.guild_only()
-    @commands.slash_command(name="ClearDebt")
+    @commands.slash_command(name="cleardebt")
     async def clear_debt(self, inter: disnake.ApplicationCommandInteraction):
         if not await self.moving_window.test(self.get_minute_item(20160),
                                              "clear_debt", inter.guild_id, inter.author.id):

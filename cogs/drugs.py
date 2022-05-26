@@ -249,6 +249,14 @@ class Drugs(commands.Cog):
     async def before_supplies_loop(self):
         await self.bot.wait_until_ready()
 
+    @supplies_loop.error
+    async def supplies_error(self, *args):
+        pass
+
+    @cops_loop.error
+    async def cops_error(self, *args):
+        pass
+
 
 def setup(bot):
     bot.add_cog(Drugs(bot))

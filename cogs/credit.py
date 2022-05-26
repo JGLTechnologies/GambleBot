@@ -172,6 +172,10 @@ class Credit(commands.Cog):
     async def before_bills_check(self):
         await self.bot.wait_until_ready()
 
+    @check_bills.error
+    async def error(self, *args):
+        pass
+
 
 def setup(bot):
     bot.add_cog(Credit(bot))
