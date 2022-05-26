@@ -62,9 +62,9 @@ class Credit(commands.Cog):
     @commands.slash_command(name="credit")
     async def credit_apply(self, inter: disnake.ApplicationCommandInteraction,
                            amount: int = commands.Param(description="The amount of credit you want")):
-        if not await self.moving_window.test(self.item, [str(inter.author.id), str(inter.guild_id)]):
+        if not await self.moving_window.test(self.item, inter.author.id, inter.guild_id):
             reset_time, _ = await self.moving_window.get_window_stats(self.item,
-                                                                      [str(inter.author.id), str(inter.guild_id)])
+                                                                      inter.author.id, inter.guild_id)
             await inter.response.send_message(
                 f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
             return

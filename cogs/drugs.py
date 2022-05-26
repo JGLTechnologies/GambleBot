@@ -1,5 +1,4 @@
 import contextlib
-
 import disnake
 from disnake.ext import commands, tasks
 import random
@@ -39,10 +38,10 @@ class Drugs(commands.Cog):
     @commands.guild_only()
     async def drugs_steal(self, inter: disnake.ApplicationCommandInteraction):
         if not await self.moving_window.test(get_minute_item(5),
-                                             ["steal", inter.guild_id, inter.author.id]):
+                                             "steal", inter.guild_id, inter.author.id):
             reset_time, _ = await self.moving_window.get_window_stats(get_minute_item(5),
-                                                                      ["steal", inter.guild_id,
-                                                                       inter.author.id])
+                                                                      "steal", inter.guild_id,
+                                                                      inter.author.id)
             await inter.response.send_message(
                 f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
             return
@@ -57,7 +56,7 @@ class Drugs(commands.Cog):
                 "You must have the drug distribution business to use that command. Buy it by doing `/buyitem drugs`",
                 ephemeral=True)
             return
-        await self.moving_window.hit(get_minute_item(5), ["steal", inter.guild_id, inter.author.id])
+        await self.moving_window.hit(get_minute_item(5), "steal", inter.guild_id, inter.author.id)
         p, s, u = await get_business_stats(inter.guild_id, inter.author.id, "drugs")
         if s >= 1000:
             if not u:
@@ -86,10 +85,10 @@ class Drugs(commands.Cog):
     @commands.guild_only()
     async def drugs_sell(self, inter: disnake.ApplicationCommandInteraction):
         if not await self.moving_window.test(get_minute_item(20),
-                                             ["sell", inter.guild_id, inter.author.id]):
+                                             "sell", inter.guild_id, inter.author.id):
             reset_time, _ = await self.moving_window.get_window_stats(get_minute_item(20),
-                                                                      ["sell", inter.guild_id,
-                                                                       inter.author.id])
+                                                                      "sell", inter.guild_id,
+                                                                       inter.author.id)
             await inter.response.send_message(
                 f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
             return
@@ -109,7 +108,7 @@ class Drugs(commands.Cog):
         if p <= 0:
             await inter.response.send_message("You do not have anything to sell.", ephemeral=True)
             return
-        await self.moving_window.hit(get_minute_item(20), ["sell", inter.guild_id, inter.author.id])
+        await self.moving_window.hit(get_minute_item(20), "sell", inter.guild_id, inter.author.id)
         await set_balance(inter.guild_id, inter.author.id, bal + p)
         await update_business_stats(inter.guild_id, inter.author.id, "drugs", product=0, supplies=s,
                                     upgraded=u)

@@ -26,6 +26,24 @@ class Commands(commands.Cog):
         return item
 
     @commands.guild_only()
+    @commands.slash_command(name="ClearDebt")
+    async def clear_debt(self, inter: disnake.ApplicationCommandInteraction):
+        if not await self.moving_window.test(self.get_minute_item(20160),
+                                             "clear_debt", inter.guild_id, inter.author.id):
+            reset_time, _ = await self.moving_window.get_window_stats(self.get_minute_item(15),
+                                                                      "clear_debt", inter.guild_id,
+                                                                      inter.author.id)
+            await inter.response.send_message(
+                f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
+            return
+        if await get_balance(inter.guild_id, inter.author.id) >= 0:
+            await inter.response.send_message("You are not in any debt.", ephemeral=True)
+        else:
+            await self.moving_window.hit(self.get_minute_item(20160), "clear_debt", inter.guild_id, inter.author.id)
+            await set_balance(inter.guild_id, inter.author.id, 0)
+            await inter.response.send_message("Your debt has been cleared.")
+
+    @commands.guild_only()
     @commands.has_permissions(administrator=True)
     @commands.slash_command(name="errors", guild_ids=[844418702430175272])
     async def errors(self, inter: disnake.ApplicationCommandInteraction):
@@ -100,28 +118,28 @@ class Commands(commands.Cog):
     @commands.slash_command(name="rob")
     async def rob(self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member = commands.Param()):
         if not await self.moving_window.test(self.get_minute_item(15),
-                                             ["rob_use", str(inter.guild_id), str(inter.author.id)]):
+                                             "rob_use", inter.guild_id, inter.author.id):
             reset_time, _ = await self.moving_window.get_window_stats(self.get_minute_item(15),
-                                                                      ["rob_use", str(inter.guild_id),
-                                                                       str(inter.author.id)])
+                                                                      "rob_use", inter.guild_id,
+                                                                      inter.author.id)
             await inter.response.send_message(
                 f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
             return
-        if not await self.moving_window.test(self.hour, ["rob", str(inter.guild_id), str(member.id)]):
+        if not await self.moving_window.test(self.hour, "rob", inter.guild_id, str(member.id)):
             await inter.response.send_message("That member was already robbed recently.", ephemeral=True)
             return
         bal = await get_balance(inter.guild_id, member.id)
         if bal < 1000:
             await inter.response.send_message("That member is too poor to be robbed.", ephemeral=True)
             return
-        await self.moving_window.hit(self.get_minute_item(15), ["rob_use", str(inter.guild_id), str(inter.author.id)])
+        await self.moving_window.hit(self.get_minute_item(15), "rob_use", inter.guild_id, inter.author.id)
         if await has_security(inter.guild_id, member.id):
             chances = ["s", "f", "f", "f", "f", "f", "f", "f", "f", "f"]
         else:
             chances = ["s", "s", "s", "s", "s", "f", "f", "f", "f", "f"]
         success = random.choice(chances) == "s"
         if success:
-            await self.moving_window.hit(self.hour, [str(inter.guild_id), str(member.id)])
+            await self.moving_window.hit(self.hour, inter.guild_id, str(member.id))
             percent = random.randrange(1, 50)
             amount = bal * (percent / 100)
             msg = f"You stole ${amount} from {str(member)}."
@@ -250,10 +268,10 @@ class Commands(commands.Cog):
     @commands.slash_command(name="beg")
     async def beg_command(self, inter: disnake.ApplicationCommandInteraction):
         if not await self.moving_window.test(self.get_minute_item(1),
-                                             ["beg", str(inter.guild_id), str(inter.author.id)]):
+                                             "beg", inter.guild_id, inter.author.id):
             reset_time, _ = await self.moving_window.get_window_stats(self.get_minute_item(1),
-                                                                      ["beg", str(inter.guild_id),
-                                                                       str(inter.author.id)])
+                                                                      "beg", inter.guild_id,
+                                                                      inter.author.id)
             await inter.response.send_message(
                 f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
             return
@@ -261,7 +279,7 @@ class Commands(commands.Cog):
         if bal >= 1000:
             await inter.response.send_message("You are too rich to beg.", ephemeral=True)
             return
-        await self.moving_window.hit(self.get_minute_item(10), ["beg", str(inter.guild_id), str(inter.author.id)])
+        await self.moving_window.hit(self.get_minute_item(10), "beg", inter.guild_id, inter.author.id)
         if random.randrange(0, 25) == 1:
             desc = "Congrats! Some generous rich man gave you $1000. You now have ${money}."
             pay = 1000
@@ -290,10 +308,10 @@ class Commands(commands.Cog):
     @commands.slash_command(name="invest")
     async def invest_command(self, inter: disnake.ApplicationCommandInteraction, amount: int = commands.Param()):
         if not await self.moving_window.test(self.get_minute_item(1),
-                                             ["invest", str(inter.guild_id), str(inter.author.id)]):
+                                             "invest", inter.guild_id, inter.author.id):
             reset_time, _ = await self.moving_window.get_window_stats(self.get_minute_item(1),
-                                                                      ["invest", str(inter.guild_id),
-                                                                       str(inter.author.id)])
+                                                                      "invest", inter.guild_id,
+                                                                      inter.author.id)
             await inter.response.send_message(
                 f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
             return
@@ -301,7 +319,7 @@ class Commands(commands.Cog):
         if bal < amount:
             await inter.response.send_message("You do not have enough money.", ephemeral=True)
             return
-        await self.moving_window.hit(self.get_minute_item(1), ["invest", str(inter.guild_id), str(inter.author.id)])
+        await self.moving_window.hit(self.get_minute_item(1), "invest", inter.guild_id, inter.author.id)
         if random.randrange(0, 25) == 1:
             desc = "The market spiked and you made $500. You now have ${money}."
             percent = 500
@@ -333,10 +351,10 @@ class Commands(commands.Cog):
     async def pay_command(self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member = commands.Param(),
                           amount: int = commands.Param()):
         if not await self.moving_window.test(self.get_minute_item(1),
-                                             ["pay", str(inter.guild_id), str(inter.author.id)]):
+                                             "pay", inter.guild_id, inter.author.id):
             reset_time, _ = await self.moving_window.get_window_stats(self.get_minute_item(5),
-                                                                      ["pay", str(inter.guild_id),
-                                                                       str(inter.author.id)])
+                                                                      "pay", inter.guild_id,
+                                                                      inter.author.id)
             await inter.response.send_message(
                 f"You need to wait until {get_discord_date(reset_time)} to use that command again.", ephemeral=True)
             return
@@ -344,7 +362,7 @@ class Commands(commands.Cog):
         if amount > bal:
             await inter.response.send_message("You do not have enough money.", ephemeral=True)
             return
-        await self.moving_window.hit(self.get_minute_item(1), ["pay", str(inter.guild_id), str(inter.author.id)])
+        await self.moving_window.hit(self.get_minute_item(1), "pay", inter.guild_id, inter.author.id)
         await inter.response.send_message(f"Successfully paid {str(member)} ${amount}.")
         await set_balance(inter.guild_id, inter.author.id, bal - amount)
         await set_balance(inter.guild_id, member.id, await get_balance(inter.guild_id, member.id) + amount)
