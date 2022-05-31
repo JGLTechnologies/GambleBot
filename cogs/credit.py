@@ -71,7 +71,7 @@ class Credit(commands.Cog):
         channel = await get_channel(inter.guild_id, "bills")
         if channel is None:
             await inter.response.send_message(
-                "A bills channel has not been set for this server. Set one by doing /setchannel bills #channel",
+                "A bills channel has not been set for this server. Set one by doing /setchannel Bills #channel",
                 ephemeral=True)
             return
         balance = await get_balance(inter.guild_id, inter.author.id)

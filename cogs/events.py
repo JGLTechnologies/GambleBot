@@ -58,6 +58,9 @@ class Events(commands.Cog):
         elif isinstance(error, disnake.Forbidden):
             await inter.response.send_message("I don't have permission to do that.",
                                               ephemeral=True)
+        elif isinstance(error, disnake.HTTPException):
+            await inter.response.send_message("Something went wrong, make sure I was given the correct permissions.",
+                                              ephemeral=True)
         else:
             if not hasattr(inter, "handled_in_local"):
                 print(f"Error in {inter.application_command.name}")
