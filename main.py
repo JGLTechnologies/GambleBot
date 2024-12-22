@@ -7,13 +7,15 @@ import time
 from dotenv import load_dotenv
 import db
 
-load_dotenv()
-logging.basicConfig(filename='GambleBot/GambleBot.log', level=logging.ERROR,
+
+with open("TOKEN", "r") as f:
+    TOKEN = f.read()
+logging.basicConfig(filename='GambleBot.log', level=logging.ERROR,
                     format="[%(asctime)s] %(levelname)s: %(message)s", datefmt="%m-%d-%Y %I:%M:%S %p")
-TOKEN = os.environ.get("GambleBot_TOKEN")
+
 cogs = ["cogs.rps", "cogs.events", "cogs.commands", "cogs.credit", "cogs.shop", "cogs.blackjack", "cogs.drugs",
         "cogs.role_shop"]
-bot = commands.AutoShardedInteractionBot(intents=disnake.Intents.all(), sync_commands_debug=True)
+bot = commands.AutoShardedInteractionBot(intents=disnake.Intents.all())
 
 
 def load_cogs():
@@ -33,8 +35,8 @@ def get_discord_date(ts: int = None) -> str:
 
 
 async def start():
-    db1 = await aiosqlite.connect("GambleBot/bot.db")
-    db2 = await aiosqlite.connect("GambleBot/bot.db")
+    db1 = await aiosqlite.connect("bot.db")
+    db2 = await aiosqlite.connect("bot.db")
     await db.setup(db1)
     bot.db = db2
 
